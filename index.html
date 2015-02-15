@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LinkDeed</title>
+        <link rel="stylesheet" href="css/style.css">
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="http://gdc.indeed.com/ads/apiresults.js"></script>
+
+        <script>
+            var mapCenter = {};
+            function getPos() {
+                var gc = new google.maps.Geocoder;
+                var addy = {address: 'Austin, tx'};
+                gc.geocode(addy, function(data, status) {
+                    console.log(status);
+                    mapCenter/*.lat*/ = data[0].geometry.location;//.k;
+                    //mapCenter.lng = data[0].geometry.location.D;
+                    console.log(mapCenter);
+                    initialize();
+                });
+            };
+            getPos();
+            function initialize() {
+
+                var mapOptions = {
+                  center: mapCenter,
+                  zoom: 12,
+                };
+                var map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
+                //map.setCenter(mapCenter);
+            }
+            //google.maps.event.addDomListener(window, 'load', initialize);
+
+        </script>
+    </head>
+    <body>
+        <div id="mapDiv"></div>
+
+
+    </body>
+</html>
