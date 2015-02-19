@@ -11,24 +11,51 @@
             var mapCenter = {};
             function getPos() {
                 var gc = new google.maps.Geocoder;
-                var addy = {address: 'Austin, tx'};
+                var addy = {address: 'san francisco, ca'};
                 gc.geocode(addy, function(data, status) {
-                    console.log(status);
                     mapCenter/*.lat*/ = data[0].geometry.location;//.k;
                     //mapCenter.lng = data[0].geometry.location.D;
-                    console.log(mapCenter);
                     initialize();
                 });
             };
             getPos();
+            var map, jobList, jobMarkers = [];
             function initialize() {
 
                 var mapOptions = {
                   center: mapCenter,
                   zoom: 12,
                 };
-                var map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
+                map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
                 //map.setCenter(mapCenter);
+                var indUrl = 'http://api.indeed.com/ads/apisearch?publisher=5398193868301259&q=&l=san%20francisco%2C+ca&sort=&radius=&st=&jt=&start=&limit=50&fromage=&filter=&latlong=1&co=us&chnl=&userip=1.2.3.4&useragent=Mozilla/%2F4.0%28Firefox%29&v=2&format=json';
+                var indData = $.ajax(indUrl, {dataType: 'jsonp', timeout: 3000}).done(function(data) {
+                    jobList = data.results;
+                    console.log(jobList.length);
+                    createMarkers(jobList);
+                }).error(function() {
+                    console.log('Indeed is unavailable');
+                });
+
+                function createMarkers (data) {
+                    var service = new google.maps.places.PlacesService(map);
+                    data.forEach(function(job) {
+                        service.textSearch({
+                            query: job.company + ' ' + job.city + ', ' + job.state,
+                            location: map.getCenter(),
+                            radius: 5000
+                        },
+                            function(result) {
+                                console.log(result);
+                                var marker = new google.maps.Marker({
+                                    position: result[0].geometry.location || {lat: job.latitude, lng: job.longitude},
+                                    map: map,
+                                    title: job.jobtitle + ' - ' + job.company
+                                });
+                                console.log(job.jobtitle + ' - ' + job.company+ ' - ' +result[0].geometry.location+'/'+job.latitude+', '+job.longitude);
+                        });
+                    });
+                }
             }
             //google.maps.event.addDomListener(window, 'load', initialize);
 
