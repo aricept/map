@@ -28,32 +28,19 @@
                 };
                 map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
                 //map.setCenter(mapCenter);
-                var indUrl = 'http://api.indeed.com/ads/apisearch?publisher=5398193868301259&q=&l=san%20francisco%2C+ca&sort=&radius=&st=&jt=&start=&limit=50&fromage=&filter=&latlong=1&co=us&chnl=&userip=1.2.3.4&useragent=Mozilla/%2F4.0%28Firefox%29&v=2&format=json';
-                var indData = $.ajax(indUrl, {dataType: 'jsonp', timeout: 3000}).done(function(data) {
-                    jobList = data.results;
-                    console.log(jobList.length);
-                    createMarkers(jobList);
-                }).error(function() {
-                    console.log('Indeed is unavailable');
-                });
+                var flightOptions = {};
+                var boundsNe = map.getBounds().getNorthEast();
+                var boundsSw = map.getBounds().getSouthWest();
+                flightOptions.topLat = boundsNe.lat();
+                flightOptions.rightLon = boundsNe.lng();
+                flightOptions.bottomLat = boundsSw.lat();
+                flightOptions.leftLon = boundsSw.lng();
+                $.ajax('https://api.flightstats.com/flex/flightstatus/rest/v2/json/flightsNear/' + flightOptions.topLat + '/' + flightOptions.leftLon + '/' + flightOptions.bottomLat + '/' + flightOptions.rightLon + '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=5', {dataType: 'jsonp'}).done(function(data) {console.log(data);});
 
                 function createMarkers (data) {
                     var service = new google.maps.places.PlacesService(map);
                     data.forEach(function(job) {
-                        service.textSearch({
-                            query: job.company + ' ' + job.city + ', ' + job.state,
-                            location: map.getCenter(),
-                            radius: 5000
-                        },
-                            function(result) {
-                                console.log(result);
-                                var marker = new google.maps.Marker({
-                                    position: result[0].geometry.location || {lat: job.latitude, lng: job.longitude},
-                                    map: map,
-                                    title: job.jobtitle + ' - ' + job.company
-                                });
-                                console.log(job.jobtitle + ' - ' + job.company+ ' - ' +result[0].geometry.location+'/'+job.latitude+', '+job.longitude);
-                        });
+
                     });
                 }
             }
