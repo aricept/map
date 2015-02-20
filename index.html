@@ -5,46 +5,47 @@
         <link rel="stylesheet" href="css/style.css">
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script type="text/javascript" src="http://gdc.indeed.com/ads/apiresults.js"></script>
 
         <script>
             var mapCenter = {};
-            function getPos() {
-                var gc = new google.maps.Geocoder;
-                var addy = {address: 'san francisco, ca'};
-                gc.geocode(addy, function(data, status) {
-                    mapCenter/*.lat*/ = data[0].geometry.location;//.k;
-                    //mapCenter.lng = data[0].geometry.location.D;
-                    initialize();
-                });
-            };
-            getPos();
             var map, jobList, jobMarkers = [];
             function initialize() {
 
                 var mapOptions = {
-                  center: mapCenter,
-                  zoom: 12,
+                  center: {lat: 37.76258118134766, lng: -122.44835037231447},
+                  zoom: 12
                 };
                 map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
+                google.maps.event.addListener(map, 'tilesloaded', getFlights);
                 //map.setCenter(mapCenter);
-                var flightOptions = {};
-                var boundsNe = map.getBounds().getNorthEast();
-                var boundsSw = map.getBounds().getSouthWest();
-                flightOptions.topLat = boundsNe.lat();
-                flightOptions.rightLon = boundsNe.lng();
-                flightOptions.bottomLat = boundsSw.lat();
-                flightOptions.leftLon = boundsSw.lng();
-                $.ajax('https://api.flightstats.com/flex/flightstatus/rest/v2/json/flightsNear/' + flightOptions.topLat + '/' + flightOptions.leftLon + '/' + flightOptions.bottomLat + '/' + flightOptions.rightLon + '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=5', {dataType: 'jsonp'}).done(function(data) {console.log(data);});
 
-                function createMarkers (data) {
-                    var service = new google.maps.places.PlacesService(map);
-                    data.forEach(function(job) {
-
-                    });
-                }
             }
-            //google.maps.event.addDomListener(window, 'load', initialize);
+
+        function getFlights() {
+            var bounds = map.getBounds();
+            map.fitBounds(bounds);
+            var flightOptions = {};
+            var boundsSw = bounds.getSouthWest();
+            var boundsNe = bounds.getNorthEast();
+            flightOptions.topLat = boundsNe.lat();
+            flightOptions.rightLon = boundsNe.lng();
+            flightOptions.bottomLat = boundsSw.lat();
+            flightOptions.leftLon = boundsSw.lng();
+            test = $.ajax('https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' + flightOptions.topLat + '/' + flightOptions.leftLon + '/' + flightOptions.bottomLat + '/' + flightOptions.rightLon + '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=10&extendedOptions=includeNewFields', {dataType: 'jsonp'}).done(createMarkers);
+        }
+
+        function createMarkers (data) {
+            data.flightPositions.forEach(function(flight) {
+                var positions = flight.positions.length;
+                var marker = new google.maps.Marker({
+                    icon: 'images/airplane70.png',
+                    map: map,
+                    title: flight.callsign,
+                    position: {lat: flight.positions[positions - 1].lat, lng: flight.positions[positions - 1].lon}
+                });
+            });
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
 
         </script>
     </head>
