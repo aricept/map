@@ -16,12 +16,13 @@
                   zoom: 12
                 };
                 map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
-                google.maps.event.addListener(map, 'tilesloaded', getFlights);
+                flightListener = google.maps.event.addListener(map, 'tilesloaded', getFlights);
                 //map.setCenter(mapCenter);
 
             }
 
         function getFlights() {
+            google.maps.event.removeListener(flightListener);
             var bounds = map.getBounds();
             map.fitBounds(bounds);
             var flightOptions = {};
