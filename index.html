@@ -24,7 +24,6 @@
         function getFlights() {
             google.maps.event.removeListener(flightListener);
             var bounds = map.getBounds();
-            map.fitBounds(bounds);
             var flightOptions = {};
             var boundsSw = bounds.getSouthWest();
             var boundsNe = bounds.getNorthEast();
