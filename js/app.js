@@ -101,6 +101,6 @@ var flightControl = function() {
     };
 };
 
-ko.applyBindings(flightControl);
+ko.applyBindings(new flightControl());
 google.maps.event.addDomListener(window, 'load', initialize);
 
