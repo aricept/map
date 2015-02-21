@@ -29,9 +29,9 @@ function loadFlights() {
     var flightOptions = {};
     var boundsSw = bounds.getSouthWest();
     var boundsNe = bounds.getNorthEast();
-    flightOptions.topLat = 37;
+    flightOptions.topLat = 38.5;
     flightOptions.rightLon = -122;
-    flightOptions.bottomLat = 38.5;
+    flightOptions.bottomLat = 37;
     flightOptions.leftLon = -123;
     test = $.ajax('https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' + flightOptions.topLat + '/' + flightOptions.leftLon + '/' + flightOptions.bottomLat + '/' + flightOptions.rightLon + '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=10&extendedOptions=includeNewFields', {dataType: 'jsonp'}). done(function(data) {
         data.flightPositions.forEach(function(flight) {
