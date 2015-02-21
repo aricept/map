@@ -39,7 +39,10 @@
             data.flightPositions.forEach(function(flight) {
                 var positions = flight.positions.length;
                 var marker = new google.maps.Marker({
-                    icon: 'images/airplane70.png',
+                    icon: {
+                        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW;
+                        rotation: 90;
+                    },
                     map: map,
                     title: flight.callsign,
                     position: {lat: flight.positions[positions - 1].lat, lng: flight.positions[positions - 1].lon}
