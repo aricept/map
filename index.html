@@ -41,7 +41,8 @@
                 var marker = new google.maps.Marker({
                     icon: {
                         path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                        rotation: flight.heading
+                        rotation: flight.heading,
+                        scale: 9
                     },
                     map: map,
                     title: flight.callsign,
