@@ -18,7 +18,7 @@ function initialize() {
       zoom: 12
     };
     map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
-    flightListener = google.maps.event.addListener(map, 'tilesloaded', getFlights);
+    flightListener = google.maps.event.addListener(map, 'tilesloaded', loadFlights);
     //map.setCenter(mapCenter);
 
 }
