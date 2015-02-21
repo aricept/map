@@ -53,7 +53,6 @@ function createMarkers (flight) {
             title: flight.callsign,
             position: {lat: flight.positions[positions - 1].lat, lng: flight.positions[positions - 1].lon}
         });
-    });
 }
 google.maps.event.addDomListener(window, 'load', initialize);
 
