@@ -35,13 +35,13 @@ function loadFlights() {
     flightOptions.leftLon = -123;
     test = $.ajax('https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' + flightOptions.topLat + '/' + flightOptions.leftLon + '/' + flightOptions.bottomLat + '/' + flightOptions.rightLon + '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=10&extendedOptions=includeNewFields', {dataType: 'jsonp'}). done(function(data) {
         data.flightPositions.forEach(function(flight) {
-            model.flights(flight);
+            createMarkers(flight);
         })
     });
 }
 
-function createMarkers (data) {
-    data.flightPositions.forEach(function(flight) {
+function createMarkers (flight) {
+    //data.flightPositions.forEach(function(flight) {
         var positions = flight.positions.length;
         var marker = new google.maps.Marker({
             icon: {
