@@ -1,19 +1,26 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
         <title>LinkDeed</title>
         <link rel="stylesheet" href="css/style.css">
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="bower_components/knockout/dist/knockout.js"></script>
 
-        <script src="js/app.js"></script>
 
 
     </head>
     <body>
         <div id="mapDiv"></div>
 
+        <ul class="filterList" data-bind="foreach: flightList">
+            <li class = "filterItem" data-bind="text: name"></li>
+        </ul>
+
+<script src="bower_components/knockout/dist/knockout.js"></script>
+
+        <script src="js/app.js"></script>
 
     </body>
+
 </html>

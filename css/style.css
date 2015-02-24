@@ -3,3 +3,16 @@ html, body, #mapDiv {
     margin: 0px;
     padding: 0px;
 }
+
+.filterList {
+    z-index: 10;
+    position: fixed;
+    right: 0px;
+    top: 2em;
+    list-style-type: none;
+}
+
+.filterItem {
+    padding: 1em;
+    background-color: #feffff;
+}
