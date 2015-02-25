@@ -13,8 +13,8 @@
     <body>
         <div id="mapDiv"></div>
 
-        <ul class="filterList" data-bind="foreach: flightList">
-            <li class = "filterItem" data-bind="text: name"></li>
+        <ul class="filterList" data-bind="template: { foreach: flightList, afterAdd: addFlight }">
+            <li class="filterItem" data-bind="text: name"></li>
         </ul>
 
 <script src="bower_components/knockout/dist/knockout.js"></script>

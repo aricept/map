@@ -103,7 +103,9 @@ var flightControl = function() {
         flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
     };
 
-
+    self.addFlight = function(elem) {
+        elem.classList.add('listed');
+    }
 
     google.maps.event.addDomListener(window, 'load', self.initialize);
 

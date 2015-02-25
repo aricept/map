@@ -15,4 +15,11 @@ html, body, #mapDiv {
 .filterItem {
     padding: 1em;
     background-color: #feffff;
+    transform: translateX(100%);
+    transition: transform 1s;
+}
+
+.listed {
+    transform: translateX(0);
+    transition: transform 1s;
 }
