@@ -11,6 +11,7 @@ html, body, #mapDiv {
     top: 2em;
     list-style-type: none;
     height: 100%;
+    width: 350px;
     overflow: auto;
 }
 
