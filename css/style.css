@@ -10,6 +10,7 @@ html, body, #mapDiv {
     right: 0px;
     top: 2em;
     list-style-type: none;
+    height: 100%;
 }
 
 .filterItem {
