@@ -11,6 +11,7 @@ html, body, #mapDiv {
     top: 2em;
     list-style-type: none;
     height: 100%;
+    overflow: auto;
 }
 
 .filterItem {
@@ -26,10 +27,16 @@ html, body, #mapDiv {
 }
 
 .airLogo {
-    width: 75px;
-    height: 25px;
+    max-width: 100%;
+    height: auto;
 }
 
 .flightName {
     margin-bottom: 0;
+}
+
+@media screen and (max-width: 640px) {
+    .filterItem {
+        width: 100%;
+    }
 }
