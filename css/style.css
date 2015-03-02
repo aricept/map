@@ -16,10 +16,19 @@ html, body, #mapDiv {
     padding: 1em;
     background-color: #feffff;
     transform: translateX(100%);
+    -webkit-transition-duration: transform 2s;
+}
+
+.filterItem.listed {
+    transform: translateX(0);
     transition: transform 1s;
 }
 
-.listed {
-    transform: translateX(0);
-    transition: transform 1s;
+.airLogo {
+    width: 75px;
+    height: 25px;
+}
+
+.flightName {
+    margin-bottom: 0;
 }

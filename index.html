@@ -13,8 +13,14 @@
     <body>
         <div id="mapDiv"></div>
 
-        <ul class="filterList" data-bind="template: { foreach: flightList, afterAdd: addFlight }">
-            <li class="filterItem" data-bind="text: name"></li>
+        <ul class="filterList" data-bind="foreach: {
+                                            data: flightList,
+                                            afterRender: addFlight,
+                                            beforeRemove: addFlight }">
+            <li class="filterItem">
+                <img class="airLogo" data-bind="attr: {src: img}, event: {onerror: $parent.hideImg}">
+                <span class="flightName" data-bind="text: name"></span>
+            </li>
         </ul>
 
 <script src="bower_components/knockout/dist/knockout.js"></script>

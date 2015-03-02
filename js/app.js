@@ -7,6 +7,9 @@ var Flight = function(flight) {
     self.plane = ko.observable(flight.plane);
     self.heading = ko.observable(flight.heading);
     self.positions = ko.observableArray(flight.positions);
+    self.img = ko.observable(flight.img);
+    self.depPort = ko.observable(flight.depPort);
+    self.arrPort = ko.observable(flight.arrPort);
 
     // Computed Observables
 
@@ -14,7 +17,7 @@ var Flight = function(flight) {
         return self.callsign().slice(3);
     });
     self.airline = ko.computed(function() {
-        if(flight.airline) {
+        if (flight.airline) {
             return flight.airline;
         }
         else {
@@ -22,7 +25,12 @@ var Flight = function(flight) {
         }
     });
     self.name = ko.computed(function() {
-        return self.airline() + ' Flight ' + self.flight();
+        if (flight.name) {
+            return flight.name;
+        }
+        else {
+            return /*self.airline() + */' Flight ' + self.flight();
+        }
     });
 
     // Marker creation
@@ -35,22 +43,15 @@ var map;
 
 var flightControl = function() {
     var self = this;
+    var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
     self.flightList = ko.observableArray([]);
 
 
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
-        var flightOptions = {};
-        flightOptions.topLat = 38;
-        flightOptions.rightLon = -122;
-        flightOptions.bottomLat = 37.6;
-        flightOptions.leftLon = -122.7;
         var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
-            flightOptions.topLat + '/' +
-            flightOptions.leftLon + '/' +
-            flightOptions.bottomLat + '/' +
-            flightOptions.rightLon +
-            '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663&maxFlights=10&extendedOptions=includeNewFields';
+            map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
+            '&maxFlights=5&extendedOptions=includeNewFields';
         $.ajax({
             dataType: 'jsonp',
             url: flightUrl,
@@ -59,32 +60,28 @@ var flightControl = function() {
     };
 
     self.createFlights = function(data) {
-        console.log('createFlights() reached');
         data.flightPositions.forEach(function(flight) {
             //flight.marker = self.createMarker(flight);
-            var cs = flight.callsign;
-            var pdUrl = 'https://query.yahooapis.com/v1/public/yql?q=select%20content%20from%20html%20where%20url%3D%27http%3A%2F%2Fplanefinder.net%2Fdata%2Fflight%2F' + cs + '%27%20and%20xpath%3D%27%2F%2Ftd%2Fspan%7C%2F%2Fh1%27&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
+            var id = flight.flightId;
+            var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
+                id + apikey + '&extendedOptions=useInlinedReferences';
             $.ajax({
-                url: pdUrl,
+                dataType: 'jsonp',
+                url: statusUrl,
                 success: function(data) {
                     console.dir(data);
-                    if (data.query.count !== 0) {
-                        flight.plane = data.query.results.span[3];
-                        h1 = data.query.results.h1;
-                        h1 = h1.slice(h1.indexOf('—')+2).trim();
-                        flight.airline = h1;
-                        flight.planeImg = 'http://planefinder.net/flightstat/v1/getImage.php?airlineCode=' +
-                            flight.callsign.slice(0,3) + '&aircraftType=' + flight.plane;
-                    }
-                    else {
-                        flight.plane = 'Plane type not available';
-                        flight.planeImg = 'Plane image not available';
-                    }
+                    var status = data.flightStatus;
+                    flight.plane = (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).name ||
+                        (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata;
+                    flight.name = /*status.carrier.name +*/ ' Flight ' + status.flightNumber;
+                    flight.depPort = status.departureAirport.city + ', ' + status.departureAirport.stateCode;
+                    flight.arrPort = status.arrivalAirport.city + ', ' + status.arrivalAirport.stateCode;
+                    flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
                     self.flightList.push( new Flight(flight) );
                 },
                 error: function(){
                     flight.plane = 'Plane type not available';
-                    flight.planeImg = 'Plane image not available';
+                    flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';;
                     self.flightList.push( new Flight(flight) );
                 }
             });
@@ -95,7 +92,7 @@ var flightControl = function() {
 
     self.initialize = function() {
         var mapOptions = {
-          center: {lat: 37.76258118134766, lng: -122.44835037231447},
+          center: {lat: 37.3894, lng: -122.0819},
           zoom: 12,
           disableDefaultUI: true
         };
@@ -104,15 +101,26 @@ var flightControl = function() {
     };
 
     self.addFlight = function(elem) {
-        elem.classList.add('listed');
+        setTimeout(function() {
+            $(elem).filter('li')[0].classList.add('listed');
+        }, 30);
+    };
+
+    self.removeFlight = function(elem) {
+
+        $(elem).filter('li')[0].classList.remove('listed');
+    }
+
+    self.hideImg = function(img) {
+        img.style.display = none;
     }
 
     google.maps.event.addDomListener(window, 'load', self.initialize);
 
-
 };
 
 createMarker = function(flight) {
+    var position = flight.positions[flight.positions.length - 1];
     var marker = new google.maps.Marker({
             icon: {
                 path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
@@ -121,7 +129,7 @@ createMarker = function(flight) {
             },
             map: map,
             title: flight.callsign,
-            position: {lat: flight.positions[0].lat, lng: flight.positions[0].lon}
+            position: {lat: position.lat, lng: position.lon}
         });
         return marker;
     };
