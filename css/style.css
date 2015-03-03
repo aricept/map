@@ -4,15 +4,40 @@ html, body, #mapDiv {
     padding: 0px;
 }
 
+.header {
+    position: fixed;
+    top: 0px;
+    background-color: #feffff;
+    z-index: 10;
+    width: 100%;
+    height: 3em;
+}
+
+.title {
+    margin: 0;
+    font-family: Arial, 'sans-serif';
+    margin-top: 5px;
+}
+
 .filterList {
+    padding: 0;
     z-index: 10;
     position: fixed;
     right: 0px;
     top: 2em;
     list-style-type: none;
-    height: 100%;
-    width: 350px;
+    max-height: 100%;
     overflow: auto;
+    background-color: #feffff;
+    box-shadow: -3px 3px 3px 3px gray;
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 1.5em;
+    width: auto;
 }
 
 .filterItem {
@@ -21,6 +46,7 @@ html, body, #mapDiv {
     width: 100%;
     transform: translateX(100%);
     -webkit-transition-duration: transform 2s;
+    font-size: 2em;
 }
 
 .filterItem.listed {
@@ -37,7 +63,7 @@ html, body, #mapDiv {
     margin-bottom: 0;
 }
 
-@media screen and (max-width: 640px) {
+@media (max-width: 980px) {
     .filterList {
         width: 100%;
     }

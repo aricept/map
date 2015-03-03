@@ -10,6 +10,7 @@ var Flight = function(flight) {
     self.img = ko.observable(flight.img);
     self.depPort = ko.observable(flight.depPort);
     self.arrPort = ko.observable(flight.arrPort);
+    self.imgLoaded = ko.observable(true);
 
     // Computed Observables
 
@@ -35,7 +36,7 @@ var Flight = function(flight) {
 
     // Marker creation
     self.marker = createMarker(flight);
-    self.marker.title = self.name();
+    self.marker.title = self.airline() + self.name();
 
 };
 
@@ -72,7 +73,8 @@ var flightControl = function() {
                     console.dir(data);
                     var status = data.flightStatus;
                     flight.plane = (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).name ||
-                        (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata;
+                        (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata || 'Unknown';
+                    flight.airline = status.carrier.name;
                     flight.name = /*status.carrier.name +*/ ' Flight ' + status.flightNumber;
                     flight.depPort = status.departureAirport.city + ', ' + status.departureAirport.stateCode;
                     flight.arrPort = status.arrivalAirport.city + ', ' + status.arrivalAirport.stateCode;
@@ -81,6 +83,8 @@ var flightControl = function() {
                 },
                 error: function(){
                     flight.plane = 'Plane type not available';
+                    flight.depPort = 'Departure city not available';
+                    flight.arrPort = 'Arrival city not available';
                     flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';;
                     self.flightList.push( new Flight(flight) );
                 }
@@ -109,11 +113,11 @@ var flightControl = function() {
     self.removeFlight = function(elem) {
 
         $(elem).filter('li')[0].classList.remove('listed');
-    }
+    };
 
-    self.hideImg = function(img) {
-        img.style.display = none;
-    }
+    self.hideImg = function(flight) {
+        flight.imgLoaded(false);
+    };
 
     google.maps.event.addDomListener(window, 'load', self.initialize);
 
