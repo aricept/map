@@ -44,9 +44,12 @@ html, body, #mapDiv {
     padding: 1em;
     background-color: #feffff;
     width: 100%;
+    max-width: 100%;
     transform: translateX(100%);
     -webkit-transition-duration: transform 2s;
     font-size: 2em;
+    padding-right: 0;
+    margin-right: 0;
 }
 
 .filterItem.listed {
@@ -66,5 +69,13 @@ html, body, #mapDiv {
 @media (max-width: 980px) {
     .filterList {
         width: 100%;
+    }
+
+    .header {
+        height: 5em;
+    }
+
+    .title {
+        font-size: 2.5em;
     }
 }
