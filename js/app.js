@@ -189,7 +189,7 @@ var flightControl = function() {
     };
 
     self.removeFlight = function(elem) {
-        $(elem).filter('li')[0].classList.toggle('listed');
+        $(elem).filter('li')[0].classList.toggle('hidden');
     };
 
     self.hideImg = function(flight) {
