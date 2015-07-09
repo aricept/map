@@ -61,7 +61,9 @@ html, body, #mapDiv {
 }
 
 .hidden {
-    
+    transform: translateX(100%);
+    -webkit-transition-duration: transform 2s;
+    transition: transform 1s;
 }
 
 .airLogo {
