@@ -48,6 +48,7 @@ html, body, #mapDiv {
     max-width: 100%;
     transform: translateX(100%);
     -webkit-transition-duration: transform 2s;
+    transition: transform 1s;
     font-size: 1.5em;
     /*padding-right: 0;
     margin-right: 0;*/
@@ -57,6 +58,10 @@ html, body, #mapDiv {
 .filterItem.listed {
     transform: translateX(0);
     transition: transform 1s;
+}
+
+.hidden {
+    
 }
 
 .airLogo {
