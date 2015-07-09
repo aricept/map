@@ -138,8 +138,8 @@ var flightControl = function() {
         var list = document.getElementsByClassName('filterItem');
         for (i=0; i < list.length; i++) {
             window.setTimeout(function() {
-                self.removeFlight(list[i]), i*10);
-            });
+                self.removeFlight(list[i]);
+            }, i*10);
         };
     };
 
