@@ -137,7 +137,7 @@ var flightControl = function() {
     self.hideMenu = function() {
         var list = document.getElementsByClassName('filterItem');
         for (i=0; i < list.length; i++) {
-            self.removeFlight(list[i]);
+            setTimeout(self.removeFlight(list[i]), i*10);
         };
     };
 
