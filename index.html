@@ -15,21 +15,21 @@
 
         <div class="header">
             <h1 class="title">FlightMap<h1>
-            <img class="menu" src="images/ic_menu_24px.svg">
+            <img class="menu" src="images/ic_menu_24px.svg" data-bind="click: hideMenu">
         </div>
 
         <ul class="filterList" data-bind="foreach: {
                                             data: flightList,
                                             afterRender: addFlight,
                                             beforeRemove: addFlight }">
-            <li class="filterItem">
+            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight">
                 <!-- ko if: imgLoaded -->
                 <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
                 <!-- /ko -->
                 <!-- ko ifnot: imgLoaded -->
                 <span data-bind="text: airline"></span>
                 <!-- /ko -->
-                <span class="flightName" data-bind="text: name"></span>
+                <p class="flightName" data-bind="text: name"></p>
             </li>
         </ul>
 

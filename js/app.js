@@ -33,22 +33,28 @@ var Flight = function(flight) {
             return /*self.airline() + */' Flight ' + self.flight();
         }
     });
-
-    // Marker creation
-    self.marker = createMarker(flight);
-    self.marker.title = self.airline() + self.name();
+    self.marker = ko.computed(function() {
+        return flight.marker(self);
+    });
 
 };
 
 var map;
 
+
+
 var flightControl = function() {
+    console.log('Reached flightControl');
     var self = this;
     var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
-    self.flightList = ko.observableArray([]);
 
+    self.flightList = ko.observableArray([]);
+    self.currFlight = ko.observable();
+    console.dir(self.flightList());
 
     self.loadFlights = function() {
+        console.log('Reached loadFlights');
+        delayed = [];
         google.maps.event.removeListener(flightListener);
         var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
             map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
@@ -56,51 +62,123 @@ var flightControl = function() {
         $.ajax({
             dataType: 'jsonp',
             url: flightUrl,
-            success: function(data) {self.createFlights(data);}
+            success: function(data) {
+                console.log('Flights Loaded');
+                data.flightPositions.forEach(function(flight) {
+                    self.createFlights(flight);
+                });
+            }
         });
     };
 
-    self.createFlights = function(data) {
-        data.flightPositions.forEach(function(flight) {
-            //flight.marker = self.createMarker(flight);
-            var id = flight.flightId;
-            var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
-                id + apikey + '&extendedOptions=useInlinedReferences';
-            $.ajax({
-                dataType: 'jsonp',
-                url: statusUrl,
-                success: function(data) {
-                    console.dir(data);
-                    var status = data.flightStatus;
-                    flight.plane = (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).name ||
-                        (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata || 'Unknown';
-                    flight.airline = status.carrier.name;
-                    flight.name = /*status.carrier.name +*/ ' Flight ' + status.flightNumber;
-                    flight.depPort = status.departureAirport.city + ', ' + status.departureAirport.stateCode;
-                    flight.arrPort = status.arrivalAirport.city + ', ' + status.arrivalAirport.stateCode;
-                    flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
-                    self.flightList.push( new Flight(flight) );
+    self.createFlights = function(flight) {
+        console.log('Reached createFlights');
+        var id = flight.flightId;
+        var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
+            id + apikey + '&extendedOptions=useInlinedReferences';
+        $.ajax({
+            dataType: 'jsonp',
+            url: statusUrl,
+            success: function(data) {
+                console.log('More Flight Data Loaded');
+                var status = data.flightStatus;
+                flight.plane = (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).name ||
+                    (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata || 'Unknown';
+                flight.airline = status.carrier.name;
+                flight.name = /*status.carrier.name +*/ ' Flight ' + status.flightNumber;
+                flight.depPort = status.departureAirport.city + ', ' + status.departureAirport.stateCode;
+                flight.arrPort = status.arrivalAirport.city + ', ' + status.arrivalAirport.stateCode;
+                flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
+                flight.marker = self.createMarker;
+                self.flightList.push( new Flight(flight) );
+                console.log(flight.name + ' Created');
+                console.dir(self.flightList());
+            },
+            error: function(){
+                console.log('Error: Flight Data Manually Created');
+                flight.plane = 'Plane type not available';
+                flight.depPort = 'Departure city not available';
+                flight.arrPort = 'Arrival city not available';
+                flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';
+                flight.marker = self.createMarker;
+                self.flightList.push( new Flight(flight) );
+                console.dir(self.flightList());
+            }
+        });
+    window.flightList = self.flightList();
+    };
+
+    self.selFlight = function(flight) {
+        if(window.innerWidth < 980) {
+            self.hideMenu();
+        };
+        console.log(flight.name() + ' Selected');
+        if (self.currFlight()) {
+            window.clearInterval(flightTimer);
+            var prevFlight = self.currFlight();
+            var position = prevFlight.positions()[prevFlight.positions().length - 1];
+        };
+        self.currFlight(flight);
+        console.dir(flight);
+        self.iconFly(flight);
+        if (prevFlight) {
+            prevFlight.marker().setOptions({
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    fillColor: 'black',
+                    rotation: flight.heading(),
+                    scale: 4,
                 },
-                error: function(){
-                    flight.plane = 'Plane type not available';
-                    flight.depPort = 'Departure city not available';
-                    flight.arrPort = 'Arrival city not available';
-                    flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';;
-                    self.flightList.push( new Flight(flight) );
+                position: {lat: position.lat, lng: position.lon}
+            });
+        };
+    };
+
+    self.hideMenu = function() {
+        var list = document.getElementsByClassName('filterItem');
+        for (i=0; i < list.length; i++) {
+            self.removeFlight(list[i]);
+        };
+    };
+
+    self.iconFly = function() {
+        console.log(self.currFlight().name() + ' Flying');
+        console.dir(self.currFlight().positions());
+
+        sortDates = function(a, b) {
+            return Date.parse(a.date) - Date.parse(b.date);
+        };
+
+        var posArray = [];
+        posArray = self.currFlight().positions().sort(sortDates);
+        var startPos = 0;
+        flightTimer = window.setInterval(function() {
+            var newPos  = posArray[startPos];
+            self.currFlight().marker().setOptions({
+                position: {lat: newPos.lat, lng: newPos.lon},
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    rotation: newPos.course,
+                    fillColor: 'blue',
+                    scale: 4
                 }
             });
-        });
-        window.flightList = self.flightList();
+            startPos++;
+            if (startPos > posArray.length - 1) {
+                startPos = 0;
+            };
+        }, 300);
     };
 
-
     self.initialize = function() {
+        console.log('Map Initialized');
         var mapOptions = {
           center: {lat: 37.3894, lng: -122.0819},
           zoom: 12,
           disableDefaultUI: true
         };
         map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
+        mapBounds = new google.maps.LatLngBounds();
         flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
     };
 
@@ -111,8 +189,7 @@ var flightControl = function() {
     };
 
     self.removeFlight = function(elem) {
-
-        $(elem).filter('li')[0].classList.remove('listed');
+        $(elem).filter('li')[0].classList.toggle('listed');
     };
 
     self.hideImg = function(flight) {
@@ -121,21 +198,33 @@ var flightControl = function() {
 
     google.maps.event.addDomListener(window, 'load', self.initialize);
 
-};
-
-createMarker = function(flight) {
-    var position = flight.positions[flight.positions.length - 1];
-    var marker = new google.maps.Marker({
+    self.createMarker = function(flight) {
+        console.log(flight.name() + ' Marker Created');
+        var position = flight.positions()[flight.positions().length - 1];
+        var marker = new google.maps.Marker({
             icon: {
                 path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                rotation: flight.heading,
-                scale: 4
+                rotation: flight.heading(),
+                scale: 4,
             },
             map: map,
-            title: flight.callsign,
+            title: flight.callsign(),
             position: {lat: position.lat, lng: position.lon}
+        });
+        /* self.marker.title = ko.computed(function() {
+            self.airline() + self.name();
+        });*/
+        mapBounds.extend(marker.position);
+        map.fitBounds(mapBounds);
+        google.maps.event.addListener(marker, 'click', function() {
+            return self.selFlight(flight);
         });
         return marker;
     };
+};
+
+
+
+
 
 ko.applyBindings(new flightControl());

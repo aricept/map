@@ -20,16 +20,16 @@ html, body, #mapDiv {
 }
 
 .filterList {
-    padding: 0;
+    padding: 10px;
     z-index: 10;
     position: fixed;
-    right: 0px;
+    right: 1px;
     top: 2em;
     list-style-type: none;
     max-height: 100%;
     overflow: auto;
-    background-color: #feffff;
-    box-shadow: -3px 3px 3px 3px gray;
+    /*background-color: #feffff;
+    box-shadow: -3px 3px 3px 3px gray;*/
 }
 
 .menu {
@@ -42,14 +42,16 @@ html, body, #mapDiv {
 
 .filterItem {
     padding: 1em;
-    background-color: #feffff;
+    margin-bottom: 10px;
+    background-color: #ffffff;
     width: 100%;
     max-width: 100%;
     transform: translateX(100%);
     -webkit-transition-duration: transform 2s;
-    font-size: 2em;
-    padding-right: 0;
-    margin-right: 0;
+    font-size: 1.5em;
+    /*padding-right: 0;
+    margin-right: 0;*/
+    box-shadow: 0 3px 3px 3px gray;
 }
 
 .filterItem.listed {
@@ -60,10 +62,15 @@ html, body, #mapDiv {
 .airLogo {
     max-width: 100%;
     height: auto;
+    margin: 0;
 }
 
 .flightName {
-    margin-bottom: 0;
+    margin: 0;
+}
+
+.selFlight {
+    box-shadow: 0 0 7px 7px #7BADFC;
 }
 
 @media (max-width: 980px) {
