@@ -52,6 +52,15 @@ var flightControl = function() {
     self.currFlight = ko.observable();
     console.dir(self.flightList());
 
+    self.sortPos = function() {
+        
+        sortDates = function(a, b) {
+            return Date.parse(a.date) - Date.parse(b.date); 
+        }; 
+        
+        return this.positions.sort(sortDates);
+    }
+
     self.loadFlights = function() {
         console.log('Reached loadFlights');
         delayed = [];
@@ -90,6 +99,7 @@ var flightControl = function() {
                 flight.arrPort = status.arrivalAirport.city + ', ' + status.arrivalAirport.stateCode;
                 flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
                 flight.marker = self.createMarker;
+                flight.positions = self.sortPos;
                 self.flightList.push( new Flight(flight) );
                 console.log(flight.name + ' Created');
                 console.dir(self.flightList());
@@ -157,7 +167,7 @@ var flightControl = function() {
 
         var posArray = [];
         var startPos = 0;
-        posArray = self.currFlight().positions().sort(sortDates);
+        posArray = self.currFlight().positions();
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
             self.currFlight().marker().setOptions({
