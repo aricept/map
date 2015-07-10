@@ -159,9 +159,9 @@ var flightControl = function() {
         var posBounds = new google.maps.LatLngBounds();
         posArray = self.currFlight().positions().sort(sortDates);
         var startPos = 0;
-        posArray.forEach(function(pos) {
-            mapBounds.extend({lat: pos.lat, lng: pos.lon});
-        });
+        for (i=0; i < posArray.length; i++) {
+            mapBounds.extend({lat: posArray[i].lat, lng: posArray[i].lon});
+        };
         map.fitBounds(mapBounds);
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
