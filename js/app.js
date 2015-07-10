@@ -158,11 +158,6 @@ var flightControl = function() {
         var posArray = [];
         var posBounds = new google.maps.LatLngBounds();
         posArray = self.currFlight().positions().sort(sortDates);
-        var startPos = 0;
-        for (i=0; i < posArray.length; i++) {
-            posBounds.extend({lat: posArray[i].lat, lng: posArray[i].lon});
-        };
-        map.fitBounds(posBounds);
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
             self.currFlight().marker().setOptions({
@@ -174,6 +169,8 @@ var flightControl = function() {
                     scale: 4
                 }
             });
+            mapBounds.extend(self.currFlight().marker().position);
+            map.fitBounds(mapBounds);
             startPos++;
             if (startPos > posArray.length - 1) {
                 startPos = 0;
