@@ -160,9 +160,9 @@ var flightControl = function() {
         posArray = self.currFlight().positions().sort(sortDates);
         var startPos = 0;
         for (i=0; i < posArray.length; i++) {
-            mapBounds.extend({lat: posArray[i].lat, lng: posArray[i].lon});
+            posBounds.extend({lat: posArray[i].lat, lng: posArray[i].lon});
         };
-        map.fitBounds(mapBounds);
+        map.fitBounds(posBounds);
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
             self.currFlight().marker().setOptions({
