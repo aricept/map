@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum scale=1">
         <title>LinkDeed</title>
         <link rel="stylesheet" href="css/style.css">
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
@@ -15,7 +16,8 @@
 
         <div class="header">
             <h1 class="title">FlightMap<h1>
-            <img class="menu" src="images/ic_menu_24px.svg" data-bind="click: hideMenu">
+            <img class="menu" src="images/ic_arrow_forward_24px.svg" data-bind="click: hideMenu">
+            <img class="menu hiddenBut" src="images/ic_menu_24px.svg" data-bind="click: hideMenu">
         </div>
 
         <ul class="filterList" data-bind="foreach: {

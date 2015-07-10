@@ -135,10 +135,14 @@ var flightControl = function() {
     };
 
     self.hideMenu = function() {
-        var list = document.getElementsByClassName('filterItem');
-        for (i=0; i < list.length; i++) {
-            self.removeFlight(list[i]);
+        var items = document.getElementsByClassName('filterItem');
+        var list = document.getElementsByClassName('filterList');
+        var menuBut = document.getElementsByClassName('menu');
+        for (i=0; i < items.length; i++) {
+            self.removeFlight(items[i]);
         };
+        menuBut[0].classList.toggle('menuSpin');
+        list[0].classList.toggle('hidden');
     };
 
     self.iconFly = function() {
@@ -189,7 +193,7 @@ var flightControl = function() {
     };
 
     self.removeFlight = function(elem) {
-        $(elem).filter('li')[0].classList.toggle('hidden');
+        $(elem).filter('li')[0].classList.toggle('listed');
     };
 
     self.hideImg = function(flight) {
