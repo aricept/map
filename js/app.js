@@ -156,7 +156,7 @@ var flightControl = function() {
         };
 
         var posArray = [];
-        var posBounds = new google.maps.LatLngBounds();
+        var startPos = 0;
         posArray = self.currFlight().positions().sort(sortDates);
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
