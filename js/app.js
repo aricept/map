@@ -108,9 +108,11 @@ var flightControl = function() {
     window.flightList = self.flightList();
     };
 
-    self.selFlight = function(flight) {
+    self.selFlight = function(flight, origin) {
         if(window.innerWidth < 980) {
-            self.hideMenu();
+            if (origin !== 'marker') {
+                self.hideMenu();
+            }
         };
         console.log(flight.name() + ' Selected');
         if (self.currFlight()) {
@@ -154,8 +156,13 @@ var flightControl = function() {
         };
 
         var posArray = [];
+        var posBounds = new google.maps.LatLngBounds();
         posArray = self.currFlight().positions().sort(sortDates);
         var startPos = 0;
+        posArray.forEach(function(pos) {
+            mapBounds.extend({lat: pos.lat, lng: pos.lon});
+        });
+        map.fitBounds(mapBounds);
         flightTimer = window.setInterval(function() {
             var newPos  = posArray[startPos];
             self.currFlight().marker().setOptions({
@@ -221,7 +228,7 @@ var flightControl = function() {
         mapBounds.extend(marker.position);
         map.fitBounds(mapBounds);
         google.maps.event.addListener(marker, 'click', function() {
-            return self.selFlight(flight);
+            return self.selFlight(flight, 'marker');
         });
         return marker;
     };
