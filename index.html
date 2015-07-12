@@ -16,15 +16,21 @@
 
         <div class="header">
             <h1 class="title">FlightMap<h1>
-            <img class="menu" src="images/ic_arrow_forward_24px.svg" data-bind="click: hideMenu">
-            <img class="menu hiddenBut" src="images/ic_menu_24px.svg" data-bind="click: hideMenu">
+            <img class="menu" src="images/ic_arrow_forward_24px.svg" data-bind="click: hideMenu, css: {menuSpin: !listVis()}">
+        </div>
+
+        <div class="info" data-bind="with: currFlight, visible: currFlight">
+            <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3>
+            <p>Departed: <span data-bind="text: departed"></span> at <span data-bind="text: depTime"></span></p>
+            <p>Arriving: <span data-bind="text: arriving"></span> at <span data-bind="text: arrTime"></span></p>
         </div>
 
         <ul class="filterList" data-bind="foreach: {
                                             data: flightList,
                                             afterRender: addFlight,
-                                            beforeRemove: addFlight }">
-            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight">
+                                            beforeRemove: addFlight },
+                                            css: {hidden: !listVis()}">
+            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight(), listed: inList()}, click: $parent.selFlight">
                 <!-- ko if: imgLoaded -->
                 <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
                 <!-- /ko -->
@@ -34,6 +40,13 @@
                 <p class="flightName" data-bind="text: name"></p>
             </li>
         </ul>
+
+        <div class="searchCircle" data-bind="click: searchToggle">
+            <img class="searchIcon" src="images/ic_search_white_48dp.png" data-bind="css: {searchSpin: searchVis()}">
+        </div>
+        <form data-bind="submit: searchFlights">
+            <input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox">
+        </form>
 
 <script src="bower_components/knockout/dist/knockout.js"></script>
 
