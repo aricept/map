@@ -40,7 +40,7 @@ html, body, #mapDiv {
     position: fixed;
     left: 5px;
     bottom: 5px;
-    z-index: 2;
+    z-index: 15;
     transition: all 1s;
 }
 
@@ -64,7 +64,8 @@ html, body, #mapDiv {
     box-shadow: -3px 3px 3px 1px black;
     font-size: 20px;
     font-weight: bold;
-    transition: width 1s;
+    z-index: 14;
+    transition: width 1s, padding 1s;
 }
 
 .searchVis {
@@ -85,16 +86,49 @@ html, body, #mapDiv {
     transition: transform 1s;
 }
 
-.info {
+.infoBox {
     position: fixed;
     top: 60px;
-    left: 10px;
+    left: 0;
     background-color: #feffff;
-    box-shadow: -3px 3px 3px 1px gray;
-    box-shadow: ;
-    //width: 200px;
+    box-shadow: 3px 3px 3px 1px gray;
+    /*height: 78px;*/
     z-index: 2;
+    display: flex;
+    transition: transform 1s;
+    transition-delay: height 1s;
+}
+
+.1s {
+    z-index: 3;
     padding: 5px;
+    width: 350px;
+    /*height: 68px;*/
+    border-right: 1px solid lightgray;
+    transition-delay: width 1s;
+}
+
+.hideInfoBut {
+    float: right;
+    height: 68px;
+    width: auto;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+    transition: transform 1s;
+}
+
+.infoBox.visInfo {
+    transform: translateX(-360px);
+    height: 68px;
+}
+
+.info.visInfo {
+    /*width: 0;*/
+}
+
+.showInfoBut {
+    transform: rotate(180deg);
 }
 
 .info p, .info h3 {
@@ -115,13 +149,11 @@ html, body, #mapDiv {
     padding: 1em;
     margin-bottom: 10px;
     background-color: #ffffff;
-    width: 100%;
+    width: 200px;
     max-width: 100%;
     transform: translateX(100%);
     transition: transform 1s;
     font-size: 1.5em;
-    /*padding-right: 0;
-    margin-right: 0;*/
     box-shadow: 0 3px 3px 3px gray;
 }
 
@@ -150,7 +182,7 @@ html, body, #mapDiv {
 
 @media (max-width: 640px) {
     .filterList {
-        width: 100%;
+        width: 50%;
         max-height: 500px;
     }
 

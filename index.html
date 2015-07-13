@@ -19,10 +19,13 @@
             <img class="menu" src="images/ic_arrow_forward_24px.svg" data-bind="click: hideMenu, css: {menuSpin: !listVis()}">
         </div>
 
-        <div class="info" data-bind="with: currFlight, visible: currFlight">
-            <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3>
-            <p>Departed: <span data-bind="text: departed"></span> at <span data-bind="text: depTime"></span></p>
-            <p>Arriving: <span data-bind="text: arriving"></span> at <span data-bind="text: arrTime"></span></p>
+        <div class="infoBox" data-bind="visible: currFlight, css: {visInfo: !infoVis()}">
+            <div class="info" data-bind="with: currFlight, css: {visInfo: !infoVis()}">
+                <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3>
+                <p>Departed: <span data-bind="text: departed"></span> at <span data-bind="text: depTime"></span></p>
+                <p>Arriving: <span data-bind="text: arriving"></span> at <span data-bind="text: arrTime"></span></p>
+            </div>
+            <img class="hideInfoBut" src="images/ic_keyboard_arrow_left_black_48dp.png" data-bind="click: infoToggle, css: {showInfoBut: !infoVis()}">
         </div>
 
         <ul class="filterList" data-bind="foreach: {
@@ -30,7 +33,7 @@
                                             afterRender: addFlight,
                                             beforeRemove: addFlight },
                                             css: {hidden: !listVis()}">
-            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight(), listed: inList()}, click: $parent.selFlight">
+            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight(), listed: inList()}, click: $parent.selFlight, visible: !hidden()">
                 <!-- ko if: imgLoaded -->
                 <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
                 <!-- /ko -->
@@ -41,11 +44,18 @@
             </li>
         </ul>
 
+        <ul class="filterList" data-bind="visible: flightError()">
+            <li class="filterItem listed">
+                <img class="airlogo" alt="Airplane" src="images/airplane70.png">
+                <p class="flightName">No Results Returned</p>
+            </li>
+        </ul>
+
         <div class="searchCircle" data-bind="click: searchToggle">
             <img class="searchIcon" src="images/ic_search_white_48dp.png" data-bind="css: {searchSpin: searchVis()}">
         </div>
         <form data-bind="submit: searchFlights">
-            <input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox">
+            <input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox, hasFocus: searchVis()">
         </form>
 
 <script src="bower_components/knockout/dist/knockout.js"></script>

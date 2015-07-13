@@ -3,12 +3,12 @@ var Flight = function(flight) {
 
     // Observables
     self.inList = ko.observable(true);
+    self.hidden = ko.observable(false);
     self.callsign = ko.observable(flight.callsign);
     self.plane = ko.observable(flight.plane);
     self.heading = ko.observable(flight.heading);
     self.depPort = ko.observable(flight.depPort);
     self.arrPort = ko.observable(flight.arrPort);
-    //self.positions = ko.observableArray(flight.positions);
     self.img = ko.observable(flight.img);
     self.imgLoaded = ko.observable(true);
 
@@ -36,12 +36,18 @@ var Flight = function(flight) {
     });
     self.depTime = ko.computed(function() {
         var dpTime = flight.depTime.split('T');
+        console.log(dpTime[1]);
         var timeComp = dpTime[1].split(':');
         if (timeComp[0] > 12) {
-            return (timeComp[0] - 12) + ':' + timeComp[1] + ' PM Local Time';
+            console.log((timeComp[0] - 12) + ':' + timeComp[1] + ' PM Local')
+            return (timeComp[0] - 12) + ':' + timeComp[1] + ' PM Local';
+        }
+        else if (timeComp[0] === 12) {
+            return timeComp[0] + ':' + timeComp[1] + ' PM Local';
         }
         else {
-            return timeComp[0] + ':' + timeComp[1] + 'AM Local Time';
+            console.log(timeComp[0] + ':' + timeComp[1] + ' AM Local')
+            return timeComp[0] + ':' + timeComp[1] + ' AM Local';
         }
     });
     self.arriving = ko.computed(function() {
@@ -86,19 +92,21 @@ var map;
 
 
 var flightControl = function() {
-    console.log('Reached flightControl');
     var self = this;
     var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
 
     self.flightList = ko.observableArray([]);
     self.filteredList = ko.observableArray([]);
     self.currFlight = ko.observable();
+    window.currFlight = self.currFlight();
     self.listVis = ko.observable(true);
     self.searchVis = ko.observable(false);
     self.searchBox = ko.observable('');
     self.searchWords = ko.computed(function() {
         return self.searchBox().split(' ');
     });
+    self.infoVis = ko.observable(true);
+    self.flightError = ko.observable(false);
 
     self.sortPos = function(flight) {
         console.dir(flight);
@@ -110,8 +118,6 @@ var flightControl = function() {
     }
 
     self.loadFlights = function() {
-        console.log('Reached loadFlights');
-        delayed = [];
         google.maps.event.removeListener(flightListener);
         var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
             map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
@@ -120,16 +126,17 @@ var flightControl = function() {
             dataType: 'jsonp',
             url: flightUrl,
             success: function(data) {
-                console.log('Flights Loaded');
+                if (data.error) {
+                    return self.flightError(true);
+                }
                 data.flightPositions.forEach(function(flight) {
                     self.createFlights(flight);
                 });
-            }
+            },
         });
     };
 
     self.createFlights = function(flight) {
-        console.log('Reached createFlights');
         var id = flight.flightId;
         var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
             id + apikey + '&extendedOptions=useInlinedReferences';
@@ -152,7 +159,6 @@ var flightControl = function() {
                 self.flightList.push( new Flight(flight) );
             },
             error: function(){
-                console.log('Error: Flight Data Manually Created');
                 flight.plane = 'Plane type not available';
                 flight.depPort = 'Departure city not available';
                 flight.arrPort = 'Arrival city not available';
@@ -171,26 +177,26 @@ var flightControl = function() {
                 self.hideMenu();
             }
         };
-        console.log(flight.name() + ' Selected');
         if (self.currFlight()) {
             window.clearInterval(flightTimer);
             var prevFlight = self.currFlight();
             var position = prevFlight.positions()[prevFlight.positions().length - 1];
         };
         self.currFlight(flight);
-        console.dir(flight);
-        self.iconFly(flight);
         if (prevFlight) {
             prevFlight.marker().setOptions({
                 icon: {
                     path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
                     fillColor: 'black',
-                    rotation: flight.heading(),
+                    rotation: prevFlight.heading(),
                     scale: 4,
                 },
                 position: {lat: position.lat, lng: position.lon}
             });
         };
+        if (self.currFlight()) {
+            self.iconFly();
+        }
     };
 
     self.hideMenu = function() {
@@ -281,37 +287,47 @@ var flightControl = function() {
         self.searchVis(!self.searchVis());
     };
 
-    self.searchFlights = function() {
-        self.flightList().forEach(function(flight) {
-            console.dir(flight.name());
-        });
+    self.infoToggle = function() {
+        self.infoVis(!self.infoVis());
+    };
 
+    self.searchFlights = function() {
+        var searchBounds = new google.maps.LatLngBounds();
         self.flightList().forEach(function(flight) {
             flight.inList(false);
+            flight.hidden(false);
             flight.marker().setMap(null);
             self.searchWords().forEach(function(word) {
-                if (flight.airline().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
-                    flight.departed().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
-                    flight.arriving().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
-                    flight.flight().toLowerCase().indexOf(word.toLowerCase()) != -1) {
-                    flight.inList(true);
-                    flight.marker().setMap(map);
+                if (flight.airline().toLowerCase().search(word.toLowerCase()) != -1 ||
+                    flight.departed().toLowerCase().search(word.toLowerCase()) != -1 ||
+                    flight.arriving().toLowerCase().search(word.toLowerCase()) != -1 ||
+                    flight.flight().toLowerCase().search(word.toLowerCase()) != -1) {
+                        flight.inList(true);
+                        flight.marker().setMap(map);
                 }
             });
         });
 
-        function boolSort(a,b) {
-
-        };
-
         self.flightList.sort(function(a,b) {
-            console.log(a.inList() - b.inList())
             return b.inList() - a.inList();
         });
-        self.flightList().forEach(function(flight) {
-            console.dir(flight.name());
-        });
 
+        if (!self.currFlight()) {
+                map.fitBounds(mapBounds);
+            }
+
+        if (!self.currFlight().inList()) {
+            self.selFlight(null);
+            map.fitBounds(mapBounds);
+        }
+
+        var visibility = window.setTimeout(function() {
+            self.flightList().forEach(function(flight) {
+                if (!flight.inList()) {
+                    flight.hidden(true);
+                }
+            });
+        }, 1100);
 
     };
 };
