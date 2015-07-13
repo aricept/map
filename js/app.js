@@ -283,13 +283,36 @@ var flightControl = function() {
 
     self.searchFlights = function() {
         self.flightList().forEach(function(flight) {
+            console.dir(flight.name());
+        });
+
+        self.flightList().forEach(function(flight) {
             flight.inList(false);
+            flight.marker().setMap(null);
             self.searchWords().forEach(function(word) {
-                if (flight.airline().search(word) != -1) {
+                if (flight.airline().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
+                    flight.departed().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
+                    flight.arriving().toLowerCase().indexOf(word.toLowerCase()) != -1 ||
+                    flight.flight().toLowerCase().indexOf(word.toLowerCase()) != -1) {
                     flight.inList(true);
+                    flight.marker().setMap(map);
                 }
             });
         });
+
+        function boolSort(a,b) {
+
+        };
+
+        self.flightList.sort(function(a,b) {
+            console.log(a.inList() - b.inList())
+            return b.inList() - a.inList();
+        });
+        self.flightList().forEach(function(flight) {
+            console.dir(flight.name());
+        });
+
+
     };
 };
 
