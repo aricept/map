@@ -35,19 +35,21 @@ var Flight = function(flight) {
         }
     });
     self.depTime = ko.computed(function() {
-        var dpTime = flight.depTime.split('T');
-        console.log(dpTime[1]);
-        var timeComp = dpTime[1].split(':');
-        if (timeComp[0] > 12) {
-            console.log((timeComp[0] - 12) + ':' + timeComp[1] + ' PM Local')
-            return (timeComp[0] - 12) + ':' + timeComp[1] + ' PM Local';
-        }
-        else if (timeComp[0] === 12) {
-            return timeComp[0] + ':' + timeComp[1] + ' PM Local';
+        if (flight.depTime) {
+            var dpTime = flight.depTime.split('T');
+            var timeComp = dpTime[1].split(':');
+            if (parseInt(timeComp[0]) > 12) {
+                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM Local';
+            }
+            else if (parseInt(timeComp[0]) === 12) {
+                return timeComp[0] + ':' + timeComp[1] + ' PM Local';
+            }
+            else {
+                return timeComp[0] + ':' + timeComp[1] + ' AM Local';
+            }
         }
         else {
-            console.log(timeComp[0] + ':' + timeComp[1] + ' AM Local')
-            return timeComp[0] + ':' + timeComp[1] + ' AM Local';
+            return 'Unknown Time';
         }
     });
     self.arriving = ko.computed(function() {
@@ -60,13 +62,21 @@ var Flight = function(flight) {
         }
     });
     self.arrTime = ko.computed(function() {
-        var arTime = flight.arrTime.split('T');
-        var timeComp = arTime[1].split(':');
-        if (parseInt(timeComp[0]) > 12) {
-            return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM Local Time';
+        if(flight.arrTime) {
+            var arTime = flight.arrTime.split('T');
+            var timeComp = arTime[1].split(':');
+            if (parseInt(timeComp[0]) > 12) {
+                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM Local';
+            }
+            else if (parseInt(timeComp[0]) === 12) {
+                return timeComp[0] + ':' + timeComp[1] + ' PM Local';
+            }
+            else {
+                return timeComp[0] + ':' + timeComp[1] + ' AM Local';
+            }
         }
         else {
-            return timeComp[0] + ':' + timeComp[1] + 'AM Local Time';
+            return 'Unknown Time';
         }
     });
     self.name = ko.computed(function() {
@@ -96,7 +106,6 @@ var flightControl = function() {
     var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
 
     self.flightList = ko.observableArray([]);
-    self.filteredList = ko.observableArray([]);
     self.currFlight = ko.observable();
     window.currFlight = self.currFlight();
     self.listVis = ko.observable(true);
@@ -107,23 +116,31 @@ var flightControl = function() {
     });
     self.infoVis = ko.observable(true);
     self.flightError = ko.observable(false);
+    self.filteredList = ko.computed(function() {
+         return self.flightList().filter(function(flight) {
+            return flight.inList();
+        });
+    });
 
-    self.sortPos = function(flight) {
-        console.dir(flight);
-        sortDates = function(a, b) {
-            return Date.parse(a.date) - Date.parse(b.date);
+    self.initialize = function() {
+        console.log('Map Initialized');
+        var mapOptions = {
+          center: {lat: 37.3894, lng: -122.0819},
+          zoom: 12,
+          disableDefaultUI: true
         };
-
-        return flight.sort(sortDates);
-    }
+        map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
+        mapBounds = new google.maps.LatLngBounds();
+        flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
+    };
 
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
-        var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
+        var flightUrl = /*'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
             map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
-            '&maxFlights=5&extendedOptions=includeNewFields';
+            '&maxFlights=5&extendedOptions=includeNewFields';*/'flightData.json';
         $.ajax({
-            dataType: 'jsonp',
+            dataType: 'json',
             url: flightUrl,
             success: function(data) {
                 if (data.error) {
@@ -134,14 +151,17 @@ var flightControl = function() {
                 });
             },
         });
+        self.flightList().forEach(function(flight) {
+            self.filteredList.push(flight);
+        });
     };
 
     self.createFlights = function(flight) {
         var id = flight.flightId;
-        var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
-            id + apikey + '&extendedOptions=useInlinedReferences';
+        var statusUrl = //'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
+            id + /*apikey + '&extendedOptions=useInlinedReferences';*/ '.json';
         $.ajax({
-            dataType: 'jsonp',
+            dataType: 'json',
             url: statusUrl,
             success: function(data) {
                 var status = data.flightStatus;
@@ -156,7 +176,7 @@ var flightControl = function() {
                 flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
-                self.flightList.push( new Flight(flight) );
+                self.flightList.push(new Flight(flight));
             },
             error: function(){
                 flight.plane = 'Plane type not available';
@@ -165,10 +185,39 @@ var flightControl = function() {
                 flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
-                self.flightList.push( new Flight(flight) );
+                self.flightList.push(new Flight(flight));
             }
         });
-    window.flightList = self.flightList();
+    };
+
+    self.sortPos = function(flight) {
+
+        sortDates = function(a, b) {
+            return Date.parse(a.date) - Date.parse(b.date);
+        };
+
+        return flight.sort(sortDates);
+    }
+
+    self.createMarker = function(flight) {
+        var position = flight.positions()[flight.positions().length - 1];
+        var marker = new google.maps.Marker({
+            icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                rotation: flight.heading(),
+                scale: 4,
+                strokeColor: 'black'
+            },
+            map: map,
+            title: flight.callsign(),
+            position: {lat: position.lat, lng: position.lon}
+        });
+        mapBounds.extend(marker.position);
+        map.fitBounds(mapBounds);
+        google.maps.event.addListener(marker, 'click', function() {
+            return self.selFlight(flight, 'marker');
+        });
+        return marker;
     };
 
     self.selFlight = function(flight, origin) {
@@ -181,6 +230,7 @@ var flightControl = function() {
             window.clearInterval(flightTimer);
             var prevFlight = self.currFlight();
             var position = prevFlight.positions()[prevFlight.positions().length - 1];
+            console.dir(position);
         };
         self.currFlight(flight);
         if (prevFlight) {
@@ -197,6 +247,7 @@ var flightControl = function() {
         if (self.currFlight()) {
             self.iconFly();
         }
+        console.dir(self.currFlight().name())
     };
 
     self.hideMenu = function() {
@@ -233,54 +284,21 @@ var flightControl = function() {
         }, 300);
     };
 
-    self.initialize = function() {
-        console.log('Map Initialized');
-        var mapOptions = {
-          center: {lat: 37.3894, lng: -122.0819},
-          zoom: 12,
-          disableDefaultUI: true
-        };
-        map = new google.maps.Map(document.getElementById('mapDiv'), mapOptions);
-        mapBounds = new google.maps.LatLngBounds();
-        flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
-    };
-
     self.addFlight = function(elem) {
-        setTimeout(function() {
-            $(elem).filter('li')[0].classList.add('listed');
-        }, 30);
+        window.setTimeout(function() {
+            $(elem).addClass('listed');
+        }, 100);
     };
 
     self.removeFlight = function(elem) {
-        $(elem).filter('li')[0].classList.toggle('listed');
+        $(elem).removeClass('listed');
+        window.setTimeout(function() {
+            $(elem).remove();
+        }, 1001);
     };
 
     self.hideImg = function(flight) {
         flight.imgLoaded(false);
-    };
-
-    google.maps.event.addDomListener(window, 'load', self.initialize);
-
-    self.createMarker = function(flight) {
-        console.log(flight.name() + ' Marker Created');
-        var position = flight.positions()[flight.positions().length - 1];
-        var marker = new google.maps.Marker({
-            icon: {
-                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                rotation: flight.heading(),
-                scale: 4,
-                strokeColor: 'black'
-            },
-            map: map,
-            title: flight.callsign(),
-            position: {lat: position.lat, lng: position.lon}
-        });
-        mapBounds.extend(marker.position);
-        map.fitBounds(mapBounds);
-        google.maps.event.addListener(marker, 'click', function() {
-            return self.selFlight(flight, 'marker');
-        });
-        return marker;
     };
 
     self.searchToggle = function() {
@@ -294,26 +312,27 @@ var flightControl = function() {
     self.searchFlights = function() {
         var searchBounds = new google.maps.LatLngBounds();
         self.flightList().forEach(function(flight) {
-            flight.inList(false);
-            flight.hidden(false);
-            flight.marker().setMap(null);
             self.searchWords().forEach(function(word) {
-                if (flight.airline().toLowerCase().search(word.toLowerCase()) != -1 ||
-                    flight.departed().toLowerCase().search(word.toLowerCase()) != -1 ||
-                    flight.arriving().toLowerCase().search(word.toLowerCase()) != -1 ||
-                    flight.flight().toLowerCase().search(word.toLowerCase()) != -1) {
-                        flight.inList(true);
-                        flight.marker().setMap(map);
+                if (flight.airline().toLowerCase().search(word.toLowerCase()) !== -1 ||
+                    flight.departed().toLowerCase().search(word.toLowerCase()) !== -1 ||
+                    flight.arriving().toLowerCase().search(word.toLowerCase()) !== -1 ||
+                    flight.flight().toLowerCase().search(word.toLowerCase()) !== -1) {
+                    flight.inList(true);
+                    flight.marker().setMap(map);
+                    searchBounds.extend(flight.marker().position);
+                }
+                if (flight.airline().toLowerCase().search(word.toLowerCase()) === -1 &&
+                    flight.departed().toLowerCase().search(word.toLowerCase()) === -1 &&
+                    flight.arriving().toLowerCase().search(word.toLowerCase()) === -1 &&
+                    flight.flight().toLowerCase().search(word.toLowerCase()) === -1) {
+                    flight.inList(false);
+                    flight.marker().setMap(null);
                 }
             });
         });
 
-        self.flightList.sort(function(a,b) {
-            return b.inList() - a.inList();
-        });
-
         if (!self.currFlight()) {
-                map.fitBounds(mapBounds);
+
             }
 
         if (!self.currFlight().inList()) {
@@ -321,15 +340,17 @@ var flightControl = function() {
             map.fitBounds(mapBounds);
         }
 
-        var visibility = window.setTimeout(function() {
-            self.flightList().forEach(function(flight) {
-                if (!flight.inList()) {
-                    flight.hidden(true);
-                }
-            });
-        }, 1100);
+        else if (self.filteredList().length > 1) {
+            map.fitBounds(searchBounds);
+        }
 
+        else {
+            map.fitBounds(mapBounds);
+        }
     };
+
+    google.maps.event.addDomListener(window, 'load', self.initialize);
+
 };
 
 
