@@ -35,14 +35,14 @@ html, body, #mapDiv {
 }
 
 .filterItem {
-    padding: 10px;
     margin: 0;
     background-color: #ffffff;
-    width: 200px;
+    width: 250px;
     max-width: 100%;
     transform: translateX(100%);
     transition: transform 1s;
     font-size: 1.5em;
+    border-bottom: 1px solid lightgray;
 }
 
 .filterItem.listed {
@@ -57,15 +57,14 @@ html, body, #mapDiv {
 .airLogo {
     max-width: 100%;
     height: auto;
-    margin: 0;
+    margin: 5px 0 0 5px;
 }
 
 .flightName {
-    margin: 0;
+    margin: 0 0 0 5px;
 }
 
 .selFlight {
-    background-color: #aaaaff;
 }
 
 .menu {
@@ -124,21 +123,22 @@ html, body, #mapDiv {
 }
 
 .infoBox {
-    position: fixed;
-    top: 48px;
-    left: 0;
-    background-color: #feffff;
-    box-shadow: 3px 3px 3px 1px gray;
-    z-index: 2;
-    display: flex;
-    height: 100px;
-    transition: transform .5s, height .5s;
+    background-color: #faf8f2;
+    box-shadow: inset 0 1px 1px 1px lightgray;
+    z-index: 3;
+    height: auto;
+    max-height: 300px;
+    width: 100%;
+    font-size: 12pt;
+    overflow: hidden;
+    padding: 3px;
+    transition: max-height .5s;
 }
 
 .info {
     z-index: 3;
-    padding: 5px;
-    width: 300px;
+    margin-left: 5px;
+    width: 100%;
     float: left;
 }
 
@@ -151,18 +151,20 @@ html, body, #mapDiv {
     padding: 0;
 }
 
-.infoBox.visInfo {
-    transform: translateX(-310px);
-    height: 48px;
+.visInfo {
+    /*transform: translateX(-310px);*/
+    max-height: 0;
+    padding: 0;
 }
 
 .showInfoBut {
     transform: rotate(180deg);
 }
 
-.info p, .info h3 {
+.infoText {
     padding: 0;
     margin: 0;
+    transition: height .5s;
 }
 
 .hiddenBut {

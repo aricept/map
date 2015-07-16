@@ -1,4 +1,67 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>FlightMap</title><link rel="stylesheet" href="css/style.css"><script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script><script src="bower_components/jquery/dist/jquery.min.js"></script></head><body><div id="mapDiv"></div><div class="header"><h1 class="title">FlightMap<h1><img class="menu" src="images/ic_keyboard_arrow_right_black_48dp.png" data-bind="click: hideMenu, css: {menuSpin: !listVis()}"></h1></h1></div><div class="infoBox" data-bind="visible: currFlight, css: {visInfo: !infoVis()}"><div class="info" data-bind="with: currFlight, css: {visInfo: !infoVis()}"><h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3><p>Departed: <span data-bind="text: departed"></span></p><p>at <span data-bind="text: depTime"></span></p><p>Arriving: <span data-bind="text: arriving"></span></p><p>at <span data-bind="text: arrTime"></span></p></div><img class="hideInfoBut" src="images/ic_keyboard_arrow_left_black_48dp.png" data-bind="click: infoToggle, css: {showInfoBut: !infoVis()}"></div><ul class="filterList" data-bind="foreach: {data: filteredList,
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>FlightMap</title>
+        <link rel="stylesheet" href="css/style.css">
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+
+
+
+    </head>
+    <body>
+        <div id="mapDiv"></div>
+
+        <div class="header">
+            <h1 class="title">FlightMap<h1>
+            <img class="menu" src="images/ic_keyboard_arrow_right_black_48dp.png" data-bind="click: hideMenu, css: {menuSpin: !listVis()}">
+        </div>
+
+
+
+        <ul class="filterList" data-bind="foreach: {data: filteredList,
                                                     afterAdd: addFlight,
                                                     beforeRemove: removeFlight},
-                                                    css: {hidden: !listVis()}"><li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight, visible: !hidden()"><img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}"><p class="flightName" data-bind="text: airline"></p><p class="flightName" data-bind="text: name"></p></li></ul><ul class="filterList" data-bind="visible: flightError()"><li class="filterItem" data-bind="css: {listed: flightError}"><img class="airlogo" alt="Airplane" src="images/airplane70.png"><p class="flightName">No Results Returned</p></li></ul><div class="searchCircle" data-bind="click: searchToggle"><img class="searchIcon" src="images/ic_search_white_48dp.png" data-bind="css: {searchSpin: searchVis()}"></div><form data-bind="submit: searchFlights"><input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox, hasFocus: searchVis()"></form><script src="bower_components/knockout/dist/knockout.js"></script><script src="js/app.js"></script></body></html>
+                                                    css: {hidden: !listVis()}">
+            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight, visible: !hidden()">
+                <!-- ko if: imgLoaded -->
+                <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
+                <!-- /ko -->
+                <!-- ko ifnot: imgLoaded -->
+                <p class="flightName" data-bind="text: airline"></p>
+                <!-- /ko -->
+                <p class="flightName" data-bind="text: name"></p>
+
+                <div class="infoBox" data-bind="css: {visInfo: $data !== $parent.currFlight()}">
+                    <!-- <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3> -->
+                    <p class="infoText">Departed: <span data-bind="text: departed"></span> at <span data-bind="text: depTime"></span></p>
+                    <p class="infoText">Arriving: <span data-bind="text: arriving"></span> at <span data-bind="text: arrTime"></span></p>
+                    <p class="infoText">Plane: <span data-bind="text: plane"></span>
+                </div>
+
+            </li>
+        </ul>
+
+        <ul class="filterList" data-bind="visible: flightError()">
+            <li class="filterItem" data-bind="css: {listed: flightError">
+                <img class="airlogo" alt="Airplane" src="images/airplane70.png">
+                <p class="flightName">No Results Returned</p>
+            </li>
+        </ul>
+
+        <div class="searchCircle" data-bind="click: searchToggle">
+            <img class="searchIcon" src="images/ic_search_white_48dp.png" data-bind="css: {searchSpin: searchVis()}">
+        </div>
+        <form data-bind="submit: searchFlights">
+            <input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox, hasFocus: searchVis()">
+        </form>
+
+<script src="bower_components/knockout/dist/knockout.js"></script>
+
+        <script src="js/app.js"></script>
+
+    </body>
+
+</html>
