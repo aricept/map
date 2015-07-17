@@ -36,16 +36,16 @@
 
                 <div class="infoBox" data-bind="css: {visInfo: $data !== $parent.currFlight()}">
                     <!-- <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3> -->
-                    <p class="infoText">Departed: <span data-bind="text: departed"></span> at <span data-bind="text: depTime"></span></p>
-                    <p class="infoText">Arriving: <span data-bind="text: arriving"></span> at <span data-bind="text: arrTime"></span></p>
-                    <p class="infoText">Plane: <span data-bind="text: plane"></span>
+                    <p class="infoText"><span data-bind="text: departed"></span> to <span data-bind="text: arriving"></span></p>
+                    <p class="infoText">Departed <span data-bind="text: depTime"></span> Arriving <span data-bind="text: arrTime"></span></p>
+                    <p class="infoText">Plane: <span data-bind="text: plane"></span></p>
                 </div>
 
             </li>
         </ul>
 
         <ul class="filterList" data-bind="visible: flightError()">
-            <li class="filterItem" data-bind="css: {listed: flightError">
+            <li class="filterItem" data-bind="css: {listed: flightError}">
                 <img class="airlogo" alt="Airplane" src="images/airplane70.png">
                 <p class="flightName">No Results Returned</p>
             </li>

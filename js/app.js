@@ -39,13 +39,13 @@ var Flight = function(flight) {
             var dpTime = flight.depTime.split('T');
             var timeComp = dpTime[1].split(':');
             if (parseInt(timeComp[0]) > 12) {
-                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM Local';
+                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM';
             }
             else if (parseInt(timeComp[0]) === 12) {
-                return timeComp[0] + ':' + timeComp[1] + ' PM Local';
+                return timeComp[0] + ':' + timeComp[1] + ' PM';
             }
             else {
-                return timeComp[0] + ':' + timeComp[1] + ' AM Local';
+                return timeComp[0] + ':' + timeComp[1] + ' AM';
             }
         }
         else {
@@ -66,13 +66,13 @@ var Flight = function(flight) {
             var arTime = flight.arrTime.split('T');
             var timeComp = arTime[1].split(':');
             if (parseInt(timeComp[0]) > 12) {
-                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM Local';
+                return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM';
             }
             else if (parseInt(timeComp[0]) === 12) {
-                return timeComp[0] + ':' + timeComp[1] + ' PM Local';
+                return timeComp[0] + ':' + timeComp[1] + ' PM';
             }
             else {
-                return timeComp[0] + ':' + timeComp[1] + ' AM Local';
+                return timeComp[0] + ':' + timeComp[1] + ' AM';
             }
         }
         else {
@@ -114,13 +114,16 @@ var flightControl = function() {
     self.searchWords = ko.computed(function() {
         return self.searchBox().split(' ');
     });
-    self.infoVis = ko.observable(true);
-    self.flightError = ko.observable(false);
     self.filteredList = ko.computed(function() {
-         return self.flightList().filter(function(flight) {
+        return self.flightList().filter(function(flight) {
             return flight.inList();
         });
     });
+    window.flightList = self.flightList();
+    window.filteredList = self.filteredList();
+    self.infoVis = ko.observable(true);
+    self.flightError = ko.observable(false);
+
 
     self.initialize = function() {
         console.log('Map Initialized');
@@ -151,6 +154,7 @@ var flightControl = function() {
                 });
             },
         });
+
         self.flightList().forEach(function(flight) {
             self.filteredList.push(flight);
         });
@@ -173,6 +177,7 @@ var flightControl = function() {
                 flight.arrPort = status.arrivalAirport;
                 flight.depTime = status.departureDate.dateLocal;
                 flight.arrTime = status.arrivalDate.dateLocal;
+                flight.tail = status.flightEquipment.tailNumber;
                 flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
@@ -331,19 +336,17 @@ var flightControl = function() {
             });
         });
 
-        if (!self.currFlight()) {
+        if (self.currFlight()) {
 
+            if (!self.currFlight().inList()) {
+                self.selFlight(null);
+                map.fitBounds(mapBounds);
             }
 
-        if (!self.currFlight().inList()) {
-            self.selFlight(null);
-            map.fitBounds(mapBounds);
+            else if (self.filteredList().length > 1) {
+                map.fitBounds(searchBounds);
+            }
         }
-
-        else if (self.filteredList().length > 1) {
-            map.fitBounds(searchBounds);
-        }
-
         else {
             map.fitBounds(mapBounds);
         }
