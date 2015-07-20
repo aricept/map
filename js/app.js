@@ -6,11 +6,23 @@ var Flight = function(flight) {
     self.callsign = ko.observable(flight.callsign);
     self.carrier = ko.observable(flight.carrier);
     self.plane = ko.computed(function() {
-        if (flight.plane.scheduledEquipment.name === '??') {
-            return flight.plane.scheduledEquipment.iata;
+        if (flight.plane.scheduledEquipment) {
+            var sched = flight.plane.scheduledEquipment;
+            if (sched.name === '??' || sched.name === null || sched.name === undefined) {
+                return sched.iata;
+            }
+            else {
+                return sched.name;
+            }
         }
-        else {
-            return flight.plane.scheduledEquipment.name;
+        else if (flight.plane.actualEquipment) {
+            var act = flight.plane.actualEquipment
+            if(act.name === '??' || act.name === null || act.name === undefined) {
+                return act.iata;
+            }
+            else {
+                return act.name;
+            }
         }
     });
     self.planeImg = ko.observable(flight.planeImg);
@@ -73,7 +85,7 @@ var Flight = function(flight) {
                 return city + ', ' + self.arrPort().stateCode;
             }
             else {
-                return city + ', ' + self.arrPort().countryName
+                return city + ', ' + self.arrPort().countryName;
             }
         }
         else {
@@ -264,7 +276,7 @@ window.flightList = self.flightList;
         };
 
         return flight.sort(sortDates);
-    }
+    };
 
     self.createMarker = function(flight) {
         var position = flight.positions()[flight.positions().length - 1];
@@ -287,18 +299,16 @@ window.flightList = self.flightList;
         return marker;
     };
 
-    self.selFlight = function(flight, origin) {
-        if(window.innerWidth < 980) {
-            if (origin !== 'marker') {
-                self.hideMenu();
-            }
-        };
+    self.selFlight = function(flight, event) {
+        if (event.currentTarget) {
+            event.currentTarget.scrollIntoView(true);
+        }
         if (self.currFlight()) {
             window.clearInterval(flightTimer);
             var prevFlight = self.currFlight();
             var position = prevFlight.positions()[prevFlight.positions().length - 1];
             console.dir(position);
-        };
+        }
         self.currFlight(flight);
         if (prevFlight) {
             prevFlight.marker().setOptions({
@@ -310,7 +320,7 @@ window.flightList = self.flightList;
                 },
                 position: {lat: position.lat, lng: position.lon}
             });
-        };
+        }
         if (self.currFlight()) {
             self.iconFly();
         }
@@ -371,7 +381,7 @@ window.flightList = self.flightList;
         console.log('Error loading plane image with URL: ' + flight.planeImg());
         flight.planeLoaded(false);
         console.log(self.currFlight().planeLoaded());
-    }
+    };
 
     self.searchToggle = function() {
         self.searchVis(!self.searchVis());
