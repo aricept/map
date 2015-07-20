@@ -32,7 +32,7 @@
             <!-- /ko -->
 
             <!-- ko foreach: {data: filteredList, afterAdd: addFlight, beforeRemove: removeFlight} -->
-            <li class="filterItem clickable" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight, visible: !hidden()">
+            <li class="filterItem clickable" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight">
                 <!-- ko if: imgLoaded -->
                 <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
                 <!-- /ko -->

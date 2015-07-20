@@ -1,40 +1,22 @@
+/******* Model for all Flights, using data pulled from flightstats.net *******/
+
 var Flight = function(flight) {
     var self = this;
 
     // Observables
-    self.hidden = ko.observable(false);
     self.callsign = ko.observable(flight.callsign);
     self.carrier = ko.observable(flight.carrier);
-    self.plane = ko.computed(function() {
-        if (flight.plane.scheduledEquipment) {
-            var sched = flight.plane.scheduledEquipment;
-            if (sched.name === '??' || sched.name === null || sched.name === undefined) {
-                return sched.iata;
-            }
-            else {
-                return sched.name;
-            }
-        }
-        else if (flight.plane.actualEquipment) {
-            var act = flight.plane.actualEquipment
-            if(act.name === '??' || act.name === null || act.name === undefined) {
-                return act.iata;
-            }
-            else {
-                return act.name;
-            }
-        }
-    });
     self.planeImg = ko.observable(flight.planeImg);
-    self.planeLoaded = ko.observable(true);
     self.heading = ko.observable(flight.heading);
     self.depPort = ko.observable(flight.depPort);
     self.arrPort = ko.observable(flight.arrPort);
     self.img = ko.observable(flight.img);
+
+    // Booleans used to determine if images correctly loaded; if not, the View will not display them.
+    self.planeLoaded = ko.observable(true);
     self.imgLoaded = ko.observable(true);
 
     // Computed Observables
-
     self.flight = ko.computed(function() {
         return self.callsign().slice(3);
     });
@@ -115,37 +97,82 @@ var Flight = function(flight) {
             return flight.name;
         }
         else {
-            return /*self.airline() + */' Flight ' + self.flight();
+            return 'Flight ' + self.flight();
         }
     });
+
+    /* This observable reference a function in the ViewModel which sorts its array of positions by time observed;
+        this ensures the positions are in the correct order for the flight animation */
     self.positions = ko.computed(function() {
         return flight.posData(flight.positions);
     });
+
+    /* References a function in the ViewModel which creates a marker for a given flight.  Making this an observable
+        makes it easy to reference the marker later for position changes, etc. */
     self.marker = ko.computed(function() {
         return flight.marker(self);
     });
+
+    /* This observable gets around inconsistency in the delivery of equipment information  from the data source. When possible,
+        it displays a user-friendly name; if not available it displays an equipment code. */
+    self.plane = ko.computed(function() {
+        if (flight.plane.scheduledEquipment) {
+            var sched = flight.plane.scheduledEquipment;
+            if (sched.name === '??' || sched.name === null || sched.name === undefined) {
+                return sched.iata;
+            }
+            else {
+                return sched.name;
+            }
+        }
+        else if (flight.plane.actualEquipment) {
+            var act = flight.plane.actualEquipment
+            if(act.name === '??' || act.name === null || act.name === undefined) {
+                return act.iata;
+            }
+            else {
+                return act.name;
+            }
+        }
+    });
+
+    /* Creates an array of the "searchable terms" for this flight.  This is then used by the ViewModel's search function
+        to filter as the user types. */
     self.searchables = ko.computed(function() {
         var terms = [];
         terms = terms.concat(self.flight(), self.arriving(), self.departed(), self.plane(), self.airline());
         return terms;
     });
 
+    /* Observable that queries the ViewModel if its flight is in the filtered list, based on its searchables array.  This allows
+        the flight's inList status to change dynamically based on user input. */
     self.inList = ko.computed(function() {
         return flight.inList(self);
     });
 
 };
 
-var map;
-
-// function xplit(arr, )
-
+/******** The ViewModel which controls data flow between the View and the Model. ********/
 var flightControl = function() {
+    var map;
     var self = this;
     var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
 
+    // Observables
     self.flightList = ko.observableArray([]);
     self.currFlight = ko.observable();
+    self.flightError = ko.observable(false);
+    self.photoView = ko.observable(false);
+    self.listVis = ko.observable(true);
+    self.searchVis = ko.observable(false);
+    self.searchBox = ko.observable('');
+    self.infoVis = ko.observable(true);
+
+    // Computed Observables
+    /* This observable manages the appearance of the current flight in the ViewModel. If the current flight
+        is in the user filtered list, it does nothing (returns "true" for "flight is in the list");
+        if it is not, it deselects the flight.  This prevents it from coming back into the filtered list as
+        still selected and animated. Since it is an observable, it does not need to be called directly to act.*/
     self.currFlightListed = ko.computed(function() {
         if (self.currFlight()) {
             if (self.currFlight().inList()) {
@@ -157,6 +184,10 @@ var flightControl = function() {
             }
         }
     });
+
+    /* mapMonitor adds and removes markers from the map based on the user filtered list.  It acts as a "forEach"
+        binding on the map markers.  Before changing the marker display (by calling .setMap()), it checks if it is
+        already set, to avoid flashing and inefficient calls. */
     self.mapMonitor = ko.computed(function() {
         return self.flightList().forEach(function(flight) {
             if (flight.inList()) {
@@ -167,25 +198,26 @@ var flightControl = function() {
             }
         });
     });
-    self.listVis = ko.observable(true);
-    self.searchVis = ko.observable(false);
-    self.searchBox = ko.observable('');
+
+    // A array of the user entered search terms; allows the return of matches against any word and not just the phrase.
     self.searchWords = ko.computed(function() {
         return self.searchBox().split(' ');
     });
-    window.searchWords = self.searchWords;
+
+    // The subset of flights that match some term of the user's input.
     self.filteredList = ko.computed(function() {
         return self.flightList().filter(function(flight) {
-            console.log('Flight ' + flight.name() + ' in list: ' + flight.inList());
             return flight.inList();
         });
     });
-    self.infoVis = ko.observable(true);
+
+    // Boolean to return a "no results display".
     self.results = ko.computed(function() {
         return self.filteredList().length === 0;
     });
-    self.flightError = ko.observable(false);
-    self.photoView = ko.observable(false);
+
+    /* The array of searchable terms from all flights. This observable is currently unimplemented; I was going to use it to display
+        an autocomplete box. */
     self.searchables = ko.computed(function() {
         var terms = [];
         self.flightList().forEach(function(flight){
@@ -194,10 +226,8 @@ var flightControl = function() {
         return terms;
     });
 
-
-
+    //Initializes the map, and begins loading flights once the map tiles have loaded.
     self.initialize = function() {
-        console.log('Map Initialized');
         var mapOptions = {
           center: {lat: 37.3894, lng: -122.0819},
           zoom: 12,
@@ -208,6 +238,7 @@ var flightControl = function() {
         flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
     };
 
+    // Queries the flightstats.com API for flights near Mountian View, CA, then sends the results another function.
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
         var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
@@ -228,6 +259,8 @@ var flightControl = function() {
         });
     };
 
+    /* This function makes another API call for each flight in the previous data.  This second API call gets more
+        info to build our Model and View.  */
     self.createFlights = function(flight) {
         var id = flight.flightId;
         var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
@@ -238,7 +271,11 @@ var flightControl = function() {
             success: function(data) {
                 var status = data.flightStatus;
                 flight.plane = status.flightEquipment;
+
+                // planefinder.net unfortuantely has no API to get these image URLs; and I could find no other good source for images.
+                // YQL was tried to webscrape them from planefinder.net, but the results were inconsistent.
                 flight.planeImg = 'http://planefinder.net/flightstat/v1/getImage.php?airlineCode=' + status.carrier.icao + '&aircraftType=' + (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata + '&skipFuzzy=0';
+
                 flight.airline = status.carrier.name;
                 flight.name = 'Flight ' + status.flightNumber;
                 flight.depPort = status.departureAirport;
@@ -248,9 +285,12 @@ var flightControl = function() {
                 flight.tail = status.flightEquipment.tailNumber;
                 flight.carrier = status.carrier.icao;
                 flight.img = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.carrier + '&requestThumb=0&isSSL=0';
+
+                // The following assign ViewModel functions to the flight, which the Model uses as computed observables.
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
                 flight.inList = self.searchFlights;
+
                 var newflight = self.flightList.push(new Flight(flight));
             },
             error: function(){
@@ -267,8 +307,7 @@ var flightControl = function() {
         });
     };
 
-window.flightList = self.flightList;
-
+    // Array sort function to sort flight positions in chronological order.
     self.sortPos = function(flight) {
 
         sortDates = function(a, b) {
@@ -278,6 +317,8 @@ window.flightList = self.flightList;
         return flight.sort(sortDates);
     };
 
+    /* Creates a marker for the flight, and ensures the marker is within the visible map range. Sets a click action on the
+        marker to select that flight. */
     self.createMarker = function(flight) {
         var position = flight.positions()[flight.positions().length - 1];
         var marker = new google.maps.Marker({
@@ -299,10 +340,16 @@ window.flightList = self.flightList;
         return marker;
     };
 
+    /* Selects a flight on user click of the menu item or map marker. Deselects the previous selection and replaces its map
+        marker. Starts the flight path animation. */
     self.selFlight = function(flight, event) {
-        if (event.currentTarget) {
+
+        /*Tests if the clicked item was the marker, or the menu item.  If the menu, scrolls the item into view.
+            I could not find a good way to reference the flight's menu item during the click from the marker. */
+        if (event !== 'marker') {
             event.currentTarget.scrollIntoView(true);
         }
+
         if (self.currFlight()) {
             window.clearInterval(flightTimer);
             var prevFlight = self.currFlight();
@@ -326,10 +373,13 @@ window.flightList = self.flightList;
         }
     };
 
+    // Toggles the state of the flight list menu.
     self.hideMenu = function() {
         self.listVis(!self.listVis());
     };
 
+    /* Animates the flight path of the selected flight.  Using requestAnimationFrame was not useful,
+        since there are so few positions.  Resizes the map to ensure the full flight path is visible. */
     self.iconFly = function() {
         var posArray = [];
         var startPos = 0;
@@ -360,12 +410,14 @@ window.flightList = self.flightList;
         }, 300);
     };
 
+    // Used by the filteredList forEach binding before each item is added to the View; animates the addition.
     self.addFlight = function(elem) {
         window.setTimeout(function() {
             $(elem).addClass('listed');
         }, 100);
     };
 
+    // Used by the filteredList forEach binding before each item is removed from the View; animates the removal.
     self.removeFlight = function(elem) {
         $(elem).removeClass('listed');
         window.setTimeout(function() {
@@ -373,27 +425,33 @@ window.flightList = self.flightList;
         }, 1001);
     };
 
+    // Called if the airline logo image fails to load, and triggers the View to not display the logo.
     self.hideImg = function(flight) {
         flight.imgLoaded(false);
     };
 
+    // Called if the plane image fails to load, and triggers the View not to display the plane image available icon.
     self.planeImgError = function(flight) {
-        console.log('Error loading plane image with URL: ' + flight.planeImg());
         flight.planeLoaded(false);
-        console.log(self.currFlight().planeLoaded());
     };
 
+    // Toggles the visibility of the search bar.
     self.searchToggle = function() {
         self.searchVis(!self.searchVis());
     };
 
+    // Toggles the visibility of the info box.
     self.infoToggle = function() {
         self.infoVis(!self.infoVis());
     };
+
+    // Toggles the visibility of the plane photo lightbox.
     self.togglePhoto = function() {
         self.photoView(!self.photoView());
     };
 
+    /* Used as the flight.inList() function; compares user input against a flight's searchables list to determine if
+        the flight should be in the filtered list.  */
     self.searchFlights = function(flight) {
         var inlist;
         return self.searchWords().some(function(word) {
@@ -404,26 +462,5 @@ window.flightList = self.flightList;
     google.maps.event.addDomListener(window, 'load', self.initialize);
 
 };
-
-ko.bindingHandlers.slideVisible = {
-    update: function(element, valueAccessor, allBindings) {
-        // First get the latest data that we're bound to
-        var value = valueAccessor();
-
-        // Next, whether or not the supplied model property is observable, get its current value
-        var valueUnwrapped = ko.unwrap(value);
-
-        // Grab some more data from another binding property
-        var duration = allBindings.get('slideDuration') || 400; // 400ms is default duration unless otherwise specified
-
-        // Now manipulate the DOM element
-        if (valueUnwrapped == true)
-            $(element).slideDown(duration); // Make the element visible
-        else
-            $(element).slideUp(duration);   // Make the element invisible
-    }
-};
-
-
 
 ko.applyBindings(new flightControl());
