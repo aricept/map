@@ -389,7 +389,7 @@ var flightControl = function() {
         for (i=0; i < posArray.length; i++) {
             var boundPoint = new google.maps.LatLng(posArray[i].lat, posArray[i].lon);
             newBounds.extend(boundPoint);
-        };
+        }
         map.fitBounds(newBounds);
 
         flightTimer = window.setInterval(function() {
