@@ -2,10 +2,19 @@ var Flight = function(flight) {
     var self = this;
 
     // Observables
-    self.inList = ko.observable(true);
     self.hidden = ko.observable(false);
     self.callsign = ko.observable(flight.callsign);
-    self.plane = ko.observable(flight.plane);
+    self.carrier = ko.observable(flight.carrier);
+    self.plane = ko.computed(function() {
+        if (flight.plane.scheduledEquipment.name === '??') {
+            return flight.plane.scheduledEquipment.iata;
+        }
+        else {
+            return flight.plane.scheduledEquipment.name;
+        }
+    });
+    self.planeImg = ko.observable(flight.planeImg);
+    self.planeLoaded = ko.observable(true);
     self.heading = ko.observable(flight.heading);
     self.depPort = ko.observable(flight.depPort);
     self.arrPort = ko.observable(flight.arrPort);
@@ -26,14 +35,19 @@ var Flight = function(flight) {
         }
     });
     self.departed = ko.computed(function() {
-        var city = self.depPort().city;
-        if (self.depPort().stateCode) {
-            return city + ', ' + self.depPort().stateCode;
+        if (self.depPort().city) {
+            var city = self.depPort().city;
+            if (self.depPort().stateCode) {
+                return city + ', ' + self.depPort().stateCode;
+            }
+            else {
+                return city + ', ' + self.depPort().countryName;
+            }
         }
         else {
-            return city + ', ' + self.depPort().countryName;
+            return self.depPort();
         }
-    });
+        });
     self.depTime = ko.computed(function() {
         if (flight.depTime) {
             var dpTime = flight.depTime.split('T');
@@ -53,12 +67,17 @@ var Flight = function(flight) {
         }
     });
     self.arriving = ko.computed(function() {
-        var city = self.arrPort().city;
-        if (self.arrPort().stateCode) {
-            return city + ', ' + self.arrPort().stateCode;
+        if (self.arrPort().city) {
+            var city = self.arrPort().city;
+            if (self.arrPort().stateCode) {
+                return city + ', ' + self.arrPort().stateCode;
+            }
+            else {
+                return city + ', ' + self.arrPort().countryName
+            }
         }
         else {
-            return city + ', ' + self.arrPort().countryName
+            return self.arrPort();
         }
     });
     self.arrTime = ko.computed(function() {
@@ -93,13 +112,21 @@ var Flight = function(flight) {
     self.marker = ko.computed(function() {
         return flight.marker(self);
     });
+    self.searchables = ko.computed(function() {
+        var terms = [];
+        terms = terms.concat(self.flight(), self.arriving(), self.departed(), self.plane(), self.airline());
+        return terms;
+    });
 
+    self.inList = ko.computed(function() {
+        return flight.inList(self);
+    });
 
 };
 
 var map;
 
-
+// function xplit(arr, )
 
 var flightControl = function() {
     var self = this;
@@ -107,22 +134,54 @@ var flightControl = function() {
 
     self.flightList = ko.observableArray([]);
     self.currFlight = ko.observable();
-    window.currFlight = self.currFlight();
+    self.currFlightListed = ko.computed(function() {
+        if (self.currFlight()) {
+            if (self.currFlight().inList()) {
+                return true;
+            }
+            if (!self.currFlight().inList()) {
+                self.selFlight(null);
+                return false;
+            }
+        }
+    });
+    self.mapMonitor = ko.computed(function() {
+        return self.flightList().forEach(function(flight) {
+            if (flight.inList()) {
+                return flight.marker().getMap() === map || flight.marker().setMap(map);
+            }
+            if (!flight.inList()) {
+                return flight.marker().getMap() === null || flight.marker().setMap(null);
+            }
+        });
+    });
     self.listVis = ko.observable(true);
     self.searchVis = ko.observable(false);
     self.searchBox = ko.observable('');
     self.searchWords = ko.computed(function() {
         return self.searchBox().split(' ');
     });
+    window.searchWords = self.searchWords;
     self.filteredList = ko.computed(function() {
         return self.flightList().filter(function(flight) {
+            console.log('Flight ' + flight.name() + ' in list: ' + flight.inList());
             return flight.inList();
         });
     });
-    window.flightList = self.flightList();
-    window.filteredList = self.filteredList();
     self.infoVis = ko.observable(true);
+    self.results = ko.computed(function() {
+        return self.filteredList().length === 0;
+    });
     self.flightError = ko.observable(false);
+    self.photoView = ko.observable(false);
+    self.searchables = ko.computed(function() {
+        var terms = [];
+        self.flightList().forEach(function(flight){
+            terms = terms.concat(flight.searchables());
+        });
+        return terms;
+    });
+
 
 
     self.initialize = function() {
@@ -139,38 +198,35 @@ var flightControl = function() {
 
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
-        var flightUrl = /*'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
+        var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
             map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
-            '&maxFlights=5&extendedOptions=includeNewFields';*/'flightData.json';
+            '&maxFlights=10&extendedOptions=includeNewFields';
         $.ajax({
-            dataType: 'json',
+            dataType: 'jsonp',
             url: flightUrl,
             success: function(data) {
                 if (data.error) {
                     return self.flightError(true);
                 }
                 data.flightPositions.forEach(function(flight) {
+                    flight.planeImg = '';
                     self.createFlights(flight);
                 });
             },
-        });
-
-        self.flightList().forEach(function(flight) {
-            self.filteredList.push(flight);
         });
     };
 
     self.createFlights = function(flight) {
         var id = flight.flightId;
-        var statusUrl = //'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
-            id + /*apikey + '&extendedOptions=useInlinedReferences';*/ '.json';
+        var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
+            id + apikey + '&extendedOptions=useInlinedReferences';
         $.ajax({
-            dataType: 'json',
+            dataType: 'jsonp',
             url: statusUrl,
             success: function(data) {
                 var status = data.flightStatus;
-                flight.plane = (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).name ||
-                    (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata || 'Unknown';
+                flight.plane = status.flightEquipment;
+                flight.planeImg = 'http://planefinder.net/flightstat/v1/getImage.php?airlineCode=' + status.carrier.icao + '&aircraftType=' + (status.flightEquipment.scheduledEquipment || status.flightEquipment.actualEquipment).iata + '&skipFuzzy=0';
                 flight.airline = status.carrier.name;
                 flight.name = 'Flight ' + status.flightNumber;
                 flight.depPort = status.departureAirport;
@@ -178,22 +234,28 @@ var flightControl = function() {
                 flight.depTime = status.departureDate.dateLocal;
                 flight.arrTime = status.arrivalDate.dateLocal;
                 flight.tail = status.flightEquipment.tailNumber;
-                flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + status.carrier.fs.toLowerCase() + '-logo.svg';
+                flight.carrier = status.carrier.icao;
+                flight.img = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.carrier + '&requestThumb=0&isSSL=0';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
-                self.flightList.push(new Flight(flight));
+                flight.inList = self.searchFlights;
+                var newflight = self.flightList.push(new Flight(flight));
             },
             error: function(){
                 flight.plane = 'Plane type not available';
                 flight.depPort = 'Departure city not available';
                 flight.arrPort = 'Arrival city not available';
-                flight.img = 'http://d3o54sf0907rz4.cloudfront.net/airline-logos/v2/centered/logos/svg/' + flight.callsign.slice(0,3).toLowerCase() + '-logo.svg';
+                flight.img = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.callsign.slice(3,0) + '&requestThumb=0&isSSL=0';
+                flight.planeImg = '';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
+                flight.inList = self.searchFlights;
                 self.flightList.push(new Flight(flight));
             }
         });
     };
+
+window.flightList = self.flightList;
 
     self.sortPos = function(flight) {
 
@@ -252,7 +314,6 @@ var flightControl = function() {
         if (self.currFlight()) {
             self.iconFly();
         }
-        console.dir(self.currFlight().name())
     };
 
     self.hideMenu = function() {
@@ -306,6 +367,12 @@ var flightControl = function() {
         flight.imgLoaded(false);
     };
 
+    self.planeImgError = function(flight) {
+        console.log('Error loading plane image with URL: ' + flight.planeImg());
+        flight.planeLoaded(false);
+        console.log(self.currFlight().planeLoaded());
+    }
+
     self.searchToggle = function() {
         self.searchVis(!self.searchVis());
     };
@@ -313,43 +380,15 @@ var flightControl = function() {
     self.infoToggle = function() {
         self.infoVis(!self.infoVis());
     };
+    self.togglePhoto = function() {
+        self.photoView(!self.photoView());
+    };
 
-    self.searchFlights = function() {
-        var searchBounds = new google.maps.LatLngBounds();
-        self.flightList().forEach(function(flight) {
-            self.searchWords().forEach(function(word) {
-                if (flight.airline().toLowerCase().search(word.toLowerCase()) !== -1 ||
-                    flight.departed().toLowerCase().search(word.toLowerCase()) !== -1 ||
-                    flight.arriving().toLowerCase().search(word.toLowerCase()) !== -1 ||
-                    flight.flight().toLowerCase().search(word.toLowerCase()) !== -1) {
-                    flight.inList(true);
-                    flight.marker().setMap(map);
-                    searchBounds.extend(flight.marker().position);
-                }
-                if (flight.airline().toLowerCase().search(word.toLowerCase()) === -1 &&
-                    flight.departed().toLowerCase().search(word.toLowerCase()) === -1 &&
-                    flight.arriving().toLowerCase().search(word.toLowerCase()) === -1 &&
-                    flight.flight().toLowerCase().search(word.toLowerCase()) === -1) {
-                    flight.inList(false);
-                    flight.marker().setMap(null);
-                }
-            });
+    self.searchFlights = function(flight) {
+        var inlist;
+        return self.searchWords().some(function(word) {
+            return flight.searchables().toString().toLowerCase().search(word.toLowerCase()) !== -1;
         });
-
-        if (self.currFlight()) {
-
-            if (!self.currFlight().inList()) {
-                self.selFlight(null);
-                map.fitBounds(mapBounds);
-            }
-
-            else if (self.filteredList().length > 1) {
-                map.fitBounds(searchBounds);
-            }
-        }
-        else {
-            map.fitBounds(mapBounds);
-        }
     };
 
     google.maps.event.addDomListener(window, 'load', self.initialize);

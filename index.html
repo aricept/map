@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>FlightMap</title>
         <link rel="stylesheet" href="css/style.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
 
@@ -15,48 +16,56 @@
         <div id="mapDiv"></div>
 
         <div class="header">
-            <h1 class="title">FlightMap<h1>
-            <img class="menu" src="images/ic_keyboard_arrow_right_black_48dp.png" data-bind="click: hideMenu, css: {menuSpin: !listVis()}">
+            <h1 class="title">FlightMap</h1>
+            <i class="material-icons md-48 md-light menu clickable" data-bind="click: hideMenu, css: {menuSpin: !listVis()}">keyboard_arrow_right</i>
         </div>
 
 
 
-        <ul class="filterList" data-bind="foreach: {data: filteredList,
-                                                    afterAdd: addFlight,
-                                                    beforeRemove: removeFlight},
-                                                    css: {hidden: !listVis()}">
-            <li class="filterItem" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight, visible: !hidden()">
+        <ul class="filterList" data-bind="css: {hidden: !listVis()}">
+
+            <!-- ko if: results() -->
+            <li class="filterItem error" data-bind="css: {listed: results()}">
+                <img class="airlogo" alt="Airplane" src="images/airplane70.png">
+                <span class="flightName">No Results Returned</span>
+            </li>
+            <!-- /ko -->
+
+            <!-- ko foreach: {data: filteredList, afterAdd: addFlight, beforeRemove: removeFlight} -->
+            <li class="filterItem clickable" data-bind="css:{selFlight: $data === $parent.currFlight()}, click: $parent.selFlight, visible: !hidden()">
                 <!-- ko if: imgLoaded -->
                 <img class="airLogo" data-bind="attr: {src: img, alt: airline}, event: {error: $parent.hideImg}">
                 <!-- /ko -->
                 <!-- ko ifnot: imgLoaded -->
-                <p class="flightName" data-bind="text: airline"></p>
+                <span class="flightName" data-bind="text: airline"></span>
                 <!-- /ko -->
-                <p class="flightName" data-bind="text: name"></p>
+                <span class="flightName" data-bind="text: name"></span>
 
                 <div class="infoBox" data-bind="css: {visInfo: $data !== $parent.currFlight()}">
                     <!-- <h3 class="infoName"><span data-bind="text: airline"></span> <span data-bind="text: name"></span></h3> -->
                     <p class="infoText"><span data-bind="text: departed"></span> to <span data-bind="text: arriving"></span></p>
                     <p class="infoText">Departed <span data-bind="text: depTime"></span> Arriving <span data-bind="text: arrTime"></span></p>
-                    <p class="infoText">Plane: <span data-bind="text: plane"></span></p>
+                    <p class="infoText">Plane: <span data-bind="text: plane"></span><i class="material-icons md-17 clickable" data-bind="click: $parent.togglePhoto, visible: planeLoaded()">photo</i></p>
                 </div>
-
             </li>
+            <!-- /ko -->
+
         </ul>
 
-        <ul class="filterList" data-bind="visible: flightError()">
-            <li class="filterItem" data-bind="css: {listed: flightError}">
-                <img class="airlogo" alt="Airplane" src="images/airplane70.png">
-                <p class="flightName">No Results Returned</p>
-            </li>
-        </ul>
-
-        <div class="searchCircle" data-bind="click: searchToggle">
-            <img class="searchIcon" src="images/ic_search_white_48dp.png" data-bind="css: {searchSpin: searchVis()}">
+        <div class="searchCircle clickable" data-bind="click: searchToggle">
+            <i class="searchIcon material-icons md-60 md-light" data-bind="css: {searchSpin: searchVis()}">search</i>
         </div>
         <form data-bind="submit: searchFlights">
             <input type="text" class="searchBox" data-bind="css: {searchVis: searchVis()}, textInput: searchBox, hasFocus: searchVis()">
         </form>
+
+        <div class="lightbox" data-bind="visible: photoView(), with: currFlight()">
+            <div class="planeBox">
+                <img class="planeImg" data-bind="attr: {src: planeImg, alt: plane}, event: {error: $parent.planeImgError}">
+                <i class="material-icons md-24 md-lighter photoClose clickable" data-bind="click: $parent.togglePhoto">close</i>
+                <p class="imageAttr">Image from planefinder.net</p>
+            </div>
+        </div>
 
 <script src="bower_components/knockout/dist/knockout.js"></script>
 
