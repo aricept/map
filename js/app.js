@@ -140,6 +140,17 @@ var Flight = function(flight) {
         to filter as the user types. */
     self.searchables = ko.computed(function() {
         var terms = [];
+        switch(self.searchCat()) {
+            case 'airline':
+                terms = terms.concat(self.flight(), self.airline());
+                return terms;
+            case 'city':
+                terms = terms.concat(self.arriving(), self.departed());
+                return terms;
+            case 'flight':
+                terms = terms.concat(self.plane());
+                return terms;
+        }
         terms = terms.concat(self.flight(), self.arriving(), self.departed(), self.plane(), self.airline());
         return terms;
     });
@@ -167,12 +178,6 @@ var flightControl = function() {
     self.searchVis = ko.observable(false);
     self.searchBox = ko.observable('');
     self.infoVis = ko.observable(true);
-    self.online = ko.computed(function() {
-        if (!navigator.onLine) {
-            console.log('App is offline');
-        }
-        return navigator.onLine;
-    });
 
     // Computed Observables
     /* This observable manages the appearance of the current flight in the ViewModel. If the current flight
@@ -231,6 +236,8 @@ var flightControl = function() {
         });
         return terms;
     });
+
+    self.searchCat =
 
     //Initializes the map, and begins loading flights once the map tiles have loaded.
     self.initialize = function() {
@@ -463,6 +470,15 @@ var flightControl = function() {
         return self.searchWords().some(function(word) {
             return flight.searchables().toString().toLowerCase().search(word.toLowerCase()) !== -1;
         });
+    };
+
+    self.searchToggle = function(model, event) {
+        if (self.catSearch() === event.target.id) {
+            self.catSearch('');
+        }
+        else {
+            self.catSearch(event.target.id);
+        }
     };
 
     google.maps.event.addDomListener(window, 'load', self.initialize);
