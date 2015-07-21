@@ -126,7 +126,7 @@ var Flight = function(flight) {
             }
         }
         else if (flight.plane.actualEquipment) {
-            var act = flight.plane.actualEquipment
+            var act = flight.plane.actualEquipment;
             if(act.name === '??' || act.name === null || act.name === undefined) {
                 return act.iata;
             }
@@ -406,7 +406,7 @@ var flightControl = function() {
             startPos++;
             if (startPos > posArray.length - 1) {
                 startPos = 0;
-            };
+            }
         }, 300);
     };
 
