@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>FlightMap</title>
         <link rel="stylesheet" href="css/style.css" inline>
-        <link rel="stylesheet" href="bower_components/offline/theme/offline-theme-slide.css">
-        <link rel="stylesheet" href="bower_components/offline/theme/offline-language-english.css">
+        <link rel="stylesheet" href="bower_components/offline/themes/offline-theme-slide.css">
+        <link rel="stylesheet" href="bower_components/offline/themes/offline-language-english.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCcLIkmDm08NH72K_BVteho2aEcOpaIso4&libraries=places"></script>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -54,6 +54,16 @@
             <!-- /ko -->
 
         </ul>
+
+            <div class="airlineSearchBox catSearch clickable" data-bind="css: {catSearch: !searchVis()}">
+                <i class="airlineSearchIcon material-icons md-36 md-dark-lighter" >flight</i>
+            </div>
+            <div class="citySearchBox catSearch clickable" data-bind="css: {catSearch: !searchVis()}">
+                <i class="citySearchIcon material-icons md-36 md-dark-lighter">location_city</i>
+            </div>
+            <div class="flightSearchBox catSearch clickable" data-bind="css: {catSearch: !searchVis()}">
+                <i class="material-icons md-36 md-dark-lighter flightSearchIcon">flight_takeoff</i>
+            </div>
 
         <div class="searchCircle clickable" data-bind="click: searchToggle">
             <i class="searchIcon material-icons md-60 md-light" data-bind="css: {searchSpin: searchVis()}">search</i>

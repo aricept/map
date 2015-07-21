@@ -167,6 +167,12 @@ var flightControl = function() {
     self.searchVis = ko.observable(false);
     self.searchBox = ko.observable('');
     self.infoVis = ko.observable(true);
+    self.online = ko.computed(function() {
+        if (!navigator.onLine) {
+            console.log('App is offline');
+        }
+        return navigator.onLine;
+    });
 
     // Computed Observables
     /* This observable manages the appearance of the current flight in the ViewModel. If the current flight

@@ -1,5 +1,5 @@
-html, 
-body, 
+html,
+body,
 #mapDiv {
     height: 100%;
     margin: 0px;
@@ -23,12 +23,21 @@ body,
 .material-icons.md-17 {
     font-size: 17px;
 }
+
+.material-icons.md-36 {
+    font-size: 36px;
+}
+
 .material-icons.md-light {
     color: rgba(255, 255, 255, 1);
 }
 
 .material-icons.md-lighter {
     color: rgba(255,255,255, 0.75);
+}
+
+.material-icons.md-dark-lighter {
+    color: rgba(0, 0, 0, 0.46);
 }
 
 /* Header UI Elements */
@@ -173,6 +182,58 @@ body,
     left: 5px;
     bottom: 5px;
     transition: all 1s;
+}
+
+.flightSearchBox.catSearch,
+.citySearchBox.catSearch,
+.airlineSearchBox.catSearch {
+    position: relative;
+    bottom: 20px;
+}
+
+.flightSearchBox {
+    position: absolute;
+    bottom: 75px;
+    left: 13px;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(255, 255,255, 0.46);
+    border-radius: 50%;
+    transition: bottom .5s;
+}
+
+.flightSearchIcon {
+    line-height: 0.8;
+}
+
+.citySearchBox {
+    position: absolute;
+    bottom:115px;
+    left: 13px;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(255, 255,255, 0.46);
+    border-radius: 50%;
+    transition: bottom .5s;
+}
+
+.citySearchIcon {
+    line-height: 0.8
+}
+
+.airlineSearchBox {
+    position: absolute;
+    bottom:155px;
+    left: 13px;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(255, 255,255, 0.46);
+    border-radius: 50%;
+    transition: bottom .5s;
+}
+
+.airlineSearchIcon {
+    line-height: 0.8
 }
 
 .clickable {
