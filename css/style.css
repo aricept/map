@@ -174,66 +174,43 @@ body,
     left: 5px;
     bottom: 5px;
     z-index: 15;
-    transition: all 1s;
+    transition: all 0.5s;
 }
 
 .searchIcon {
     position: fixed;
     left: 5px;
     bottom: 5px;
-    transition: all 1s;
+    transition: all 0.75s;
 }
 
-.flightSearchBox.catSearch,
-.citySearchBox.catSearch,
-.airlineSearchBox.catSearch {
+.searchTypeBox.catSearch {
     position: absolute;
-    bottom: 20px;
+    height: 0;
 }
 
-.flightSearchBox {
-    position: absolute;
-    bottom: 75px;
-    left: 13px;
+.searchType {
+    background-color: rgba(255, 255,255, 0.75);
+    color: rgba(0, 0, 0, 0.46);
     width: 35px;
     height: 35px;
-    background-color: rgba(255, 255,255, 0.46);
     border-radius: 50%;
-    transition: bottom .5s;
+    margin: 0 0 5px 0;
 }
 
-.flightSearchIcon {
-    line-height: 0.8;
-}
-
-.citySearchBox {
+.searchTypeBox {
+    left: 15px;
     position: absolute;
-    bottom:115px;
-    left: 13px;
-    width: 35px;
-    height: 35px;
-    background-color: rgba(255, 255,255, 0.46);
-    border-radius: 50%;
-    transition: bottom .5s;
+    bottom: 50px;
+    height: 150px;
+    width: 40px;
+    overflow: hidden;
+    transition: height .75s;
 }
 
-.citySearchIcon {
-    line-height: 0.8
-}
-
-.airlineSearchBox {
-    position: absolute;
-    bottom:155px;
-    left: 13px;
-    width: 35px;
-    height: 35px;
-    background-color: rgba(255, 255,255, 0.46);
-    border-radius: 50%;
-    transition: bottom .5s;
-}
-
-.airlineSearchIcon {
-    line-height: 0.8
+.selSearch {
+    background-color: rgba(0, 0, 0, 0.46);
+    color: rgba(255, 255,255, 0.75);
 }
 
 .clickable {
@@ -252,7 +229,7 @@ body,
     font-size: 20px;
     font-weight: bold;
     z-index: 14;
-    transition: width 1s, padding 1s;
+    transition: width 0.75s, padding 0.75s;
 }
 
 .searchVis {

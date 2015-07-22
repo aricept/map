@@ -11,6 +11,7 @@ var Flight = function(flight) {
     self.depPort = ko.observable(flight.depPort);
     self.arrPort = ko.observable(flight.arrPort);
     self.img = ko.observable(flight.img);
+    self.icon = ko.observable(flight.icon);
 
     // Booleans used to determine if images correctly loaded; if not, the View will not display them.
     self.planeLoaded = ko.observable(true);
@@ -28,6 +29,8 @@ var Flight = function(flight) {
             return self.callsign().slice(0,3);
         }
     });
+
+    /* The following observables create the departure and arrival cities and times for display in the info box */
     self.departed = ko.computed(function() {
         if (self.depPort().city) {
             var city = self.depPort().city;
@@ -78,7 +81,7 @@ var Flight = function(flight) {
         if(flight.arrTime) {
             var arTime = flight.arrTime.split('T');
             var timeComp = arTime[1].split(':');
-            if (parseInt(timeComp[0]) > 12) {
+            if (parseInt(timeComp[0] ) > 12) {
                 return (parseInt(timeComp[0]) - 12) + ':' + timeComp[1] + ' PM';
             }
             else if (parseInt(timeComp[0]) === 12) {
@@ -136,23 +139,10 @@ var Flight = function(flight) {
         }
     });
 
-    /* Creates an array of the "searchable terms" for this flight.  This is then used by the ViewModel's search function
-        to filter as the user types. */
+    /* Creates an array of the "searchable terms" for this flight using the flightTerms() ViewModel function.
+        This is then used by the ViewModel's search function to filter as the user types. */
     self.searchables = ko.computed(function() {
-        var terms = [];
-        switch(self.searchCat()) {
-            case 'airline':
-                terms = terms.concat(self.flight(), self.airline());
-                return terms;
-            case 'city':
-                terms = terms.concat(self.arriving(), self.departed());
-                return terms;
-            case 'flight':
-                terms = terms.concat(self.plane());
-                return terms;
-        }
-        terms = terms.concat(self.flight(), self.arriving(), self.departed(), self.plane(), self.airline());
-        return terms;
+        return flight.searchables(self);
     });
 
     /* Observable that queries the ViewModel if its flight is in the filtered list, based on its searchables array.  This allows
@@ -215,7 +205,7 @@ var flightControl = function() {
         return self.searchBox().split(' ');
     });
 
-    // The subset of flights that match some term of the user's input.
+    // The subset of flights that match some term of the user's input, which is used to generate our UI.
     self.filteredList = ko.computed(function() {
         return self.flightList().filter(function(flight) {
             return flight.inList();
@@ -227,17 +217,24 @@ var flightControl = function() {
         return self.filteredList().length === 0;
     });
 
-    /* The array of searchable terms from all flights. This observable is currently unimplemented; I was going to use it to display
-        an autocomplete box. */
-    self.searchables = ko.computed(function() {
-        var terms = [];
-        self.flightList().forEach(function(flight){
-            terms = terms.concat(flight.searchables());
-        });
-        return terms;
-    });
+    /* An Object for the search category UI.  This MUCH simplified the way the interface was built and handled.
+        It takes in 3 strings, used to construct the UI and delegate which arrays of searchables should be used.*/
+    var SearchType = function(type, icon, title) {
+        this.type = ko.observable(type);
+        this.icon = ko.observable(icon);
+        this.title = ko.observable(title);
+    };
 
-    self.searchCat =
+    /* The array of search categories for multi-field searching.  Without a category selected, all fields are searched.
+        The "icon" field here is used to implement Google's Material Design Icon ligatures.  The "title" field is used
+        in the mouseover tooltip. */
+    self.searchTypes = ko.observableArray([
+        new SearchType('flight', 'flight_takeoff', 'Search Plane Types'),
+        new SearchType('city', 'location_city', 'Search Cities'),
+        new SearchType('airline', 'flight', 'Search Flights and Airlines'),
+    ]);
+
+    self.searchCat = ko.observable('');
 
     //Initializes the map, and begins loading flights once the map tiles have loaded.
     self.initialize = function() {
@@ -251,7 +248,7 @@ var flightControl = function() {
         flightListener = google.maps.event.addListener(map, 'tilesloaded', self.loadFlights);
     };
 
-    // Queries the flightstats.com API for flights near Mountian View, CA, then sends the results another function.
+    // Queries the flightstats.com API for flights near Mountain View, CA, then sends the results another function.
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
         var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
@@ -298,10 +295,12 @@ var flightControl = function() {
                 flight.tail = status.flightEquipment.tailNumber;
                 flight.carrier = status.carrier.icao;
                 flight.img = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.carrier + '&requestThumb=0&isSSL=0';
+                flight.icon = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.carrier + '&requestThumb=1&isSSL=0';
 
                 // The following assign ViewModel functions to the flight, which the Model uses as computed observables.
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
+                flight.searchables = self.flightTerms;
                 flight.inList = self.searchFlights;
 
                 var newflight = self.flightList.push(new Flight(flight));
@@ -311,9 +310,11 @@ var flightControl = function() {
                 flight.depPort = 'Departure city not available';
                 flight.arrPort = 'Arrival city not available';
                 flight.img = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.callsign.slice(3,0) + '&requestThumb=0&isSSL=0';
+                flight.icon = 'http://planefinder.net/flightstat/v1/getLogoRedirect.php?airlineCode=' + flight.callsign.slice(3,0) + '&requestThumb=1&isSSL=0';
                 flight.planeImg = '';
                 flight.marker = self.createMarker;
                 flight.posData = self.sortPos;
+                flight.searchables = self.flightTerms;
                 flight.inList = self.searchFlights;
                 self.flightList.push(new Flight(flight));
             }
@@ -330,21 +331,34 @@ var flightControl = function() {
         return flight.sort(sortDates);
     };
 
-    /* Creates a marker for the flight, and ensures the marker is within the visible map range. Sets a click action on the
-        marker to select that flight. */
+    /* Creates a marker for the flight, and ensures the marker is within the visible map range. Loads the marker image asynchronously,
+        and has a fallback in acse the image fails to load. Sets a click action on the marker to select that flight. */
     self.createMarker = function(flight) {
         var position = flight.positions()[flight.positions().length - 1];
+        var logo = new Image();
         var marker = new google.maps.Marker({
-            icon: {
-                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                rotation: flight.heading(),
-                scale: 4,
-                strokeColor: 'black'
-            },
-            map: map,
+            map: null,
             title: flight.callsign(),
             position: {lat: position.lat, lng: position.lon}
         });
+        logo.onload = function() {
+            marker.setOptions({
+                icon: flight.icon(),
+                map: map
+            });
+        };
+        logo.onerror = function() {
+            marker.setOptions({
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    rotation: flight.heading(),
+                    scale: 4,
+                    strokeColor: 'black'
+                },
+                map: map
+            });
+        };
+        logo.src = flight.icon();
         mapBounds.extend(marker.position);
         map.fitBounds(mapBounds);
         google.maps.event.addListener(marker, 'click', function() {
@@ -359,7 +373,7 @@ var flightControl = function() {
 
         /*Tests if the clicked item was the marker, or the menu item.  If the menu, scrolls the item into view.
             I could not find a good way to reference the flight's menu item during the click from the marker. */
-        if (event !== 'marker') {
+        if (flight !== null && event !== 'marker') {
             event.currentTarget.scrollIntoView(true);
         }
 
@@ -367,17 +381,10 @@ var flightControl = function() {
             window.clearInterval(flightTimer);
             var prevFlight = self.currFlight();
             var position = prevFlight.positions()[prevFlight.positions().length - 1];
-            console.dir(position);
         }
         self.currFlight(flight);
         if (prevFlight) {
             prevFlight.marker().setOptions({
-                icon: {
-                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    fillColor: 'black',
-                    rotation: prevFlight.heading(),
-                    scale: 4,
-                },
                 position: {lat: position.lat, lng: position.lon}
             });
         }
@@ -409,12 +416,6 @@ var flightControl = function() {
             var newPos  = posArray[startPos];
             self.currFlight().marker().setOptions({
                 position: {lat: newPos.lat, lng: newPos.lon},
-                icon: {
-                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    rotation: newPos.course,
-                    strokeColor: 'blue',
-                    scale: 4
-                }
             });
             startPos++;
             if (startPos > posArray.length - 1) {
@@ -472,12 +473,40 @@ var flightControl = function() {
         });
     };
 
-    self.searchToggle = function(model, event) {
-        if (self.catSearch() === event.target.id) {
-            self.catSearch('');
+    /* The following function serves as the ViewModel's connection to the search category models.  It is used by the Flight models
+        to generate a list of searchable terms against which user input is matched. It limits searches to a specific field; if none
+        are selected, all fields are searched. Selecting after a search will also immediately filter the list to results for only
+        that field.*/
+    self.flightTerms = function(flight) {
+        var terms = [];
+        if (self.searchCat()) {
+            switch(self.searchCat().type()) {
+                case 'airline':
+                    terms = terms.concat(flight.flight(), flight.airline());
+                    return terms;
+                case 'city':
+                    terms = terms.concat(flight.arriving(), flight.departed());
+                    return terms;
+                case 'flight':
+                    terms = terms.concat(flight.plane());
+                    return terms;
+            }
+            terms = terms.concat(flight.flight(), flight.arriving(), flight.departed(), flight.plane(), flight.airline());
+            return terms;
         }
         else {
-            self.catSearch(event.target.id);
+            terms = terms.concat(flight.flight(), flight.arriving(), flight.departed(), flight.plane(), flight.airline());
+            return terms;
+        }
+    };
+
+    // This function toggles the selected search type, or untoggles if already selected.
+    self.searchCatToggle = function(type) {
+        if (type === self.searchCat()) {
+            self.searchCat('');
+        }
+        else {
+            self.searchCat(type);
         }
     };
 
