@@ -1,0 +1,304 @@
+html,
+body,
+#mapDiv {
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Material Design Icon Font Classes */
+
+.material-icons.md-48 {
+    font-size: 48px;
+}
+
+.material-icons.md-60 {
+    font-size: 60px;
+}
+
+.material-icons.md-24 {
+    font-size: 24px;
+}
+
+.material-icons.md-17 {
+    font-size: 17px;
+}
+
+.material-icons.md-36 {
+    font-size: 36px;
+}
+
+.material-icons.md-light {
+    color: rgba(255, 255, 255, 1);
+}
+
+.material-icons.md-lighter {
+    color: rgba(255,255,255, 0.75);
+}
+
+.material-icons.md-dark-lighter {
+    color: rgba(0, 0, 0, 0.46);
+}
+
+/* Header UI Elements */
+
+.header {
+    position: fixed;
+    top: 0;
+    background-color: #3f51b5;
+    box-shadow: 0 3px 6px 1px #212121;
+    z-index: 10;
+    width: 100%;
+    height: 3em;
+}
+
+.title {
+    margin: 5px 0 0 0;
+    font-family: Arial, "sans-serif";
+    color: #fff;
+}
+
+.menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: auto;
+    transition: transform 1s;
+}
+
+.menuSpin {
+    transition: transform .5s;
+    transform: rotate(180deg);
+}
+
+/* Menu/FlightList UI Elements */
+
+.filterList {
+    padding: 5px 0 0 0;
+    z-index: 10;
+    position: fixed;
+    right: 0;
+    top: 2em;
+    list-style-type: none;
+    height: 95%;
+    width: 300px;
+    overflow: auto;
+    background-color: #fff;
+    box-shadow: -3px 1px 7px 2px #212121;
+    transition: transform 1s;
+}
+
+.filterItem {
+    margin: 0 0 10px 0;
+    background-color: #fff;
+    width: 100%;
+    max-width: 100%;
+    transform: translateX(100%);
+    transition: transform 1s;
+    font-size: 1.5em;
+}
+
+.filterItem.listed {
+    transform: translateX(0);
+    transition: transform 1s;
+}
+
+.airLogo {
+    max-width: 150px;
+    max-height: 100px;
+    vertical-align: middle;
+    height: auto;
+    margin: 0 0 5px 5px;
+}
+
+.flightName {
+    margin: 0 0 5px 10px;
+}
+
+.hidden {
+    transform: translateX(101%);
+}
+
+.infoBox {
+    background-color: #faf8f2;
+    box-shadow: inset 0 2px 2px 1px #212121;
+    z-index: 3;
+    height: auto;
+    max-height: 300px;
+    width: 100%;
+    font-size: 12pt;
+    overflow: hidden;
+    padding: 5px;
+    transition: max-height 1s, padding .5s;
+}
+
+.info {
+    z-index: 3;
+    margin: 0 0 0 5px;
+    width: 100%;
+    float: left;
+}
+
+.hideInfoBut {
+    float: right;
+    height: 48px;
+    width: 48px;
+    z-index: 3;
+    margin: 0;
+    padding: 0;
+}
+
+.visInfo {
+    max-height: 0;
+    padding: 0 5px;
+}
+
+.showInfoBut {
+    transform: rotate(180deg);
+}
+
+.infoText {
+    padding: 0;
+    margin: 0;
+}
+
+/* Search UI Elements */
+
+.searchCircle {
+    border-radius: 50%;
+    background-color: blue;
+    width: 60px;
+    height: 60px;
+    box-shadow: 0 5px 6px 1px #212121;
+    position: fixed;
+    left: 5px;
+    bottom: 5px;
+    z-index: 15;
+    transition: all 0.5s;
+}
+
+.searchIcon {
+    position: fixed;
+    left: 5px;
+    bottom: 5px;
+    transition: all 0.75s;
+}
+
+.searchTypeBox.catSearch {
+    position: absolute;
+    height: 0;
+}
+
+.searchType {
+    background-color: rgba(255, 255,255, 0.75);
+    color: rgba(0, 0, 0, 0.46);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin: 0 0 5px 0;
+}
+
+.searchTypeBox {
+    left: 15px;
+    position: absolute;
+    bottom: 50px;
+    height: 150px;
+    width: 40px;
+    overflow: hidden;
+    transition: height .75s;
+}
+
+.selSearch {
+    background-color: rgba(0, 0, 0, 0.46);
+    color: rgba(255, 255,255, 0.75);
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.searchBox {
+    position: fixed;
+    left: 30px;
+    bottom: 12px;
+    width: 0;
+    height: 30px;
+    border: 7px solid blue;
+    border-radius: 50px;
+    box-shadow: 0 5px 6px 1px #212121;
+    font-size: 20px;
+    font-weight: bold;
+    z-index: 14;
+    transition: width 0.75s, padding 0.75s;
+}
+
+.searchVis {
+    width: 290px;
+    padding: 0 0 0 30px;
+}
+
+.searchSpin {
+    transform: rotate(810deg);
+}
+
+.hiddenBut {
+    transform: translateX(100%);
+}
+
+/* Plane Image UI Elements */
+
+.lightbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.planeBox {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+
+.planeImg {
+    width: 500px;
+    max-width: 100%;
+}
+
+.imageAttr {
+    color: rgba(255, 255, 255, 0.26);
+}
+
+.photoClose {
+    display: block;
+    float: right;
+    top: 0;
+    right: 100%;
+    height: 24px;
+    width: 24px;
+    border: 1px solid rgba(255,255,255, 0.75);
+    border-radius: 50%;
+}
+
+/* Media Quries for Responsive Design */
+
+@media (max-width: 640px) {
+    .filterList {
+        width: 50%;
+        max-height: 500px;
+    }
+
+    .infoBox {
+        max-width: 100%;
+    }
+
+    .title {
+        font-size: 2.5em;
+    }
+}
