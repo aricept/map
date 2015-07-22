@@ -23,7 +23,7 @@ These can be limited using the search category icons which appea above the searc
 * Cities
 * Airline and Flight Number
 
-This is a full text search, so it can match strings in the middle of any of these searchable fields; ~DAL~ matches ~Dallas~ and Delta flights, for instance, since Delta's callsign is DAL.  ~LAS~ will match ~Dallas~ and ~Las Vegas~.
+This is a full text search, so it can match strings in the middle of any of these searchable fields; *DAL* matches *Dallas* and Delta flights, for instance, since Delta's callsign is DAL.  *LAS* will match *Dallas* and *Las Vegas*.
 
 ###References
 I read through the Knockout documentation and referenced the Mozilla Developer Network several times; the MDN article on Array.some() was awesome in minimizing the size of the search function.
