@@ -157,7 +157,6 @@ var Flight = function(flight) {
 var flightControl = function() {
     var map;
     var self = this;
-    var apikey = '?appId=11381d70&appKey=59ee672f0e6a4744ca3a7efac46b4663';
 
     // Observables
     self.flightList = ko.observableArray([]);
@@ -251,11 +250,9 @@ var flightControl = function() {
     // Queries the flightstats.com API for flights near Mountain View, CA, then sends the results another function.
     self.loadFlights = function() {
         google.maps.event.removeListener(flightListener);
-        var flightUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/' +
-            map.getCenter().lat() + '/' + map.getCenter().lng() + '/' + 25 + apikey +
-            '&maxFlights=10&extendedOptions=includeNewFields';
+        var flightUrl = 'flightData.json'
         $.ajax({
-            dataType: 'jsonp',
+            dataType: 'json',
             url: flightUrl,
             success: function(data) {
                 if (data.error) {
@@ -273,10 +270,9 @@ var flightControl = function() {
         info to build our Model and View.  */
     self.createFlights = function(flight) {
         var id = flight.flightId;
-        var statusUrl = 'https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flight/status/' +
-            id + apikey + '&extendedOptions=useInlinedReferences';
+        var statusUrl = id + '.json';
         $.ajax({
-            dataType: 'jsonp',
+            dataType: 'json',
             url: statusUrl,
             success: function(data) {
                 var status = data.flightStatus;
